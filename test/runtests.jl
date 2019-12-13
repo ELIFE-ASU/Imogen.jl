@@ -1,3 +1,3 @@
 using Eolas, Test
 
-@test Eolas.greet() != "Hello World!"
+@test Eolas.greet() == "Hello World!"
