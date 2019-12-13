@@ -1,9 +1,8 @@
-name: Testing
+name: tests
 on: [push]
 
 jobs:
     test:
-        name: Testing
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
@@ -20,4 +19,7 @@ jobs:
               with:
                   version: ${{ matrix.julia-version }}
                   arch: ${{ matrix.julia-arch }}
-            - run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
+            - name: "Instantiate Package"
+              run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
+            - name: "Run Tests"
+              run: julia --project=. -e 'using Pkg; Pkg.test()'
