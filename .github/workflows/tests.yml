@@ -24,6 +24,6 @@ jobs:
             - name: "Run Tests"
               run: julia --project=. -e 'using Pkg; Pkg.test(coverage=true)'
             - name: "Submit Test Coverage"
-              run: julia --project=. -e "using Pkg; Pkg.add(\"Coverage\"); using Coverage; Codecov.submit_local(process_folder())"
+              run: julia --project=. -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit_local(process_folder())'
               env:
                   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
