@@ -61,6 +61,7 @@ Construct a `Vertex` with a given `name` and payload (`p`), with no vertices
 above or below.
 """
 Vertex(name::Name, p::P) where P = Vertex(name, p, Vertex{P}[], Vertex{P}[])
+
 """
     Vertex{P}(name)
 
@@ -69,4 +70,4 @@ vertices above or below.
 """
 Vertex{P}(name::Name) where P = Vertex(name, zero(P))
 
-Base.show(io, v::Vertex) = print(io, "Vertex(", v.name, ", ", v.payload, ")")
+Base.show(io::IO, v::Vertex{P,V}) where {P, V} = print(io, "Vertex(", v.name, ", ", v.payload, ")")
