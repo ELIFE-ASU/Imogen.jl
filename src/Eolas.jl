@@ -1,5 +1,7 @@
 module Eolas
 
-greet() = "Hello World!"
+export AbstractVertex, name, payload, above, below, Vertex
+
+include("lattice.jl")
 
 end
