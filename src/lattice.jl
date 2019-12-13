@@ -35,11 +35,11 @@ below(v::AbstractVertex) = v.below
 
 
 """
-    Name = Vector{Int64}
+    Name = Vector{Int}
 
 A type alias for integer arrays used as names of vertices.
 """
-const Name = Vector{Int64}
+const Name = Vector{Int}
 
 """
     Vertex{P} <: AbstractVertex{P}
