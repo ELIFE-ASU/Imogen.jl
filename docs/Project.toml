@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Eolas = "06c3e0d4-3ef7-44c8-b5b3-e8219edcdfd5"
