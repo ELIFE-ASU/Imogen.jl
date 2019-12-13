@@ -55,15 +55,6 @@ mutable struct Vertex{P, V <: AbstractVertex{P}} <: AbstractVertex{P}
 end
 
 """
-    Vertex(name, p, above, below)
-
-Construct a `Vertex` with a given `name` and payload (`p`), and vertices
-`above` and `below`.
-"""
-function Vertex(name::Name, p::P, above::AbstractVector{V}, below::AbstractVector{V}) where {P, V}
-    Vertex{P,V}(name, p, above, below)
-end
-"""
     Vertex(name, p)
 
 Construct a `Vertex` with a given `name` and payload (`p`), with no vertices
