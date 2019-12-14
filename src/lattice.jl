@@ -71,3 +71,27 @@ vertices above or below.
 Vertex{P}(name::Name) where P = Vertex(name, zero(P))
 
 Base.show(io::IO, v::Vertex{P,V}) where {P, V} = print(io, "Vertex(", v.name, ", ", v.payload, ")")
+
+"""
+    isbelow(a, b)
+
+Determine whether or not `a` is below `b`.
+"""
+function isbelow(xs::Name, ys::Name)
+    is_below = true
+    for y in ys
+        is_valid = false
+        for x in xs
+            if x == x & y
+                is_valid = true
+                break
+            end
+        end
+        if !is_valid
+            is_below = false
+            break
+        end
+    end
+    is_below
+end
+isbelow(a::AbstractVertex, b::AbstractVertex) = isbelow(name(a), name(b))
