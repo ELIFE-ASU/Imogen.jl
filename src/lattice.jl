@@ -95,3 +95,44 @@ function isbelow(xs::Name, ys::Name)
     is_below
 end
 isbelow(a::AbstractVertex, b::AbstractVertex) = isbelow(name(a), name(b))
+
+"""
+    vertices(::Type{V}, n) where {V <: AbstractVertex}
+
+Construct an array populated with all named vertices of type `V` of `n`
+elements.
+"""
+function vertices(::Type{V}, n::Int64) where {V <: AbstractVertex}
+    if n < 1
+        throw(DomainError(n, "at least one node is required"))
+    end
+    vs = V[]
+    m = (1 << n) - 1;
+    for i in 1:m
+        push!(vs, V([i]))
+        vertices!(vs, i + 1, m, [i])
+    end
+    vs
+end
+
+function vertices!(vs::AbstractVector{V}, i, m, c) where {V <: AbstractVertex}
+    if i < m
+        vertices!(vs, i+1, m, c[:])
+    end
+
+    if i <= m
+        z = 0
+        for j in 1:length(c)
+            z = i & c[j]
+            if (z == i || z == c[j])
+                return vs
+            end
+        end
+        push!(c, i)
+        push!(vs, V(c))
+        vertices!(vs, i+1, m, c[:])
+    end
+
+    vs
+end
+
