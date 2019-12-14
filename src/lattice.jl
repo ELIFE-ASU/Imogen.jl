@@ -136,3 +136,29 @@ function vertices!(vs::AbstractVector{V}, i, m, c) where {V <: AbstractVertex}
     vs
 end
 
+"""
+    toposort!(vs)
+
+Topologically sort vertices according to the `isbelow` relation.
+"""
+function toposort!(vs::AbstractVector{V}) where {V <: AbstractVertex}
+    n, u, v = length(vs), 1, 1
+    while v < n - 1
+        u = v
+        for i in u:n
+            is_bottom = true
+            for j in u:n
+                if i != j && isbelow(vs[j], vs[i])
+                    is_bottom = false
+                    break
+                end
+            end
+            if is_bottom
+                vs[v], vs[i] = vs[i], vs[v]
+                v += 1
+            end
+        end
+    end
+    vs
+end
+
