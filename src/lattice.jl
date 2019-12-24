@@ -77,32 +77,27 @@ Base.show(io::IO, v::Vertex{P,V}) where {P, V} = print(io, "Vertex(", v.name, ",
 
 Determine whether or not `a` is below `b`.
 """
-function isbelow(xs::Name, ys::Name)
-    is_below = true
-    for y in ys
+@inline function isbelow(xs::Name, ys::Name)
+    for i in eachindex(ys)
         is_valid = false
-        for x in xs
-            if x == x & y
-                is_valid = true
-                break
-            end
+        for j in eachindex(xs)
+            is_valid = is_valid || xs[j] == xs[j] & ys[i]
         end
         if !is_valid
-            is_below = false
-            break
+            return false
         end
     end
-    is_below
+    true
 end
 isbelow(a::AbstractVertex, b::AbstractVertex) = isbelow(name(a), name(b))
 
 """
-    vertices(::Type{V}, n) where {V <: AbstractVertex}
+    genvertices(::Type{V}, n) where {V <: AbstractVertex}
 
 Construct an array populated with all named vertices of type `V` of `n`
 elements.
 """
-function vertices(::Type{V}, n::Int64) where {V <: AbstractVertex}
+function genvertices(::Type{V}, n::Int64) where {V <: AbstractVertex}
     if n < 1
         throw(DomainError(n, "at least one node is required"))
     end
@@ -110,14 +105,14 @@ function vertices(::Type{V}, n::Int64) where {V <: AbstractVertex}
     m = (1 << n) - 1;
     for i in 1:m
         push!(vs, V([i]))
-        vertices!(vs, i + 1, m, [i])
+        genvertices!(vs, i + 1, m, [i])
     end
     vs
 end
 
-function vertices!(vs::AbstractVector{V}, i, m, c) where {V <: AbstractVertex}
+function genvertices!(vs::AbstractVector{V}, i, m, c) where {V <: AbstractVertex}
     if i < m
-        vertices!(vs, i+1, m, c[:])
+        genvertices!(vs, i+1, m, c[:])
     end
 
     if i <= m
@@ -130,7 +125,7 @@ function vertices!(vs::AbstractVector{V}, i, m, c) where {V <: AbstractVertex}
         end
         push!(c, i)
         push!(vs, V(c))
-        vertices!(vs, i+1, m, c[:])
+        genvertices!(vs, i+1, m, c[:])
     end
 
     vs
@@ -162,3 +157,76 @@ function toposort!(vs::AbstractVector{V}) where {V <: AbstractVertex}
     vs
 end
 
+"""
+    Hasse{P}
+
+A Hasse diagram (lattice) with payload of type `P` on its vertices.
+"""
+mutable struct Hasse{P}
+    top::Vertex{P}
+    bottom::Vertex{P}
+    vertices::Vector{Vertex{P}}
+end
+
+"""
+Hasse{P}(n)
+
+Construct a Hasse diagram of order `n` with zeroed payloads of type `P` on its
+vertices.
+"""
+function Hasse{P}(n::Int64) where P
+    vs = genvertices(Vertex{P}, n)
+    toposort!(vs)
+    Hasse(vs)
+end
+
+function Hasse(vs::AbstractVector{Vertex{P}}) where P
+    if isempty(vs)
+        throw(ArgumentError("vertex list is empty"))
+    end
+
+    for i in 1:length(vs)
+        for j in i+1:length(vs)
+            if isbelow(vs[i], vs[j])
+                stop = false
+                for v in above(vs[i])
+                    if isbelow(v, vs[j])
+                        stop = true
+                        break
+                    end
+                end
+                if stop
+                    break
+                else
+                    push!(above(vs[i]), vs[j])
+                    push!(below(vs[j]), vs[i])
+                end
+            end
+        end
+    end
+
+    Hasse{P}(vs[end], vs[1], vs)
+end
+
+"""
+    top(h)
+
+Get the top vertex of the Hasse diagram `h`.
+"""
+top(h::Hasse) = h.top
+
+"""
+    bottom(h)
+
+Get the bottom vertex of the Hasse diagram `h`.
+"""
+bottom(h::Hasse) = h.bottom
+
+"""
+    vertices(h)
+
+Get the array of vertices of the Hasse diagram `h`.
+"""
+vertices(h::Hasse) = h.vertices
+
+Base.length(h::Hasse) = length(vertices(h))
