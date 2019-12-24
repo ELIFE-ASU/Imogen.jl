@@ -230,3 +230,17 @@ Get the array of vertices of the Hasse diagram `h`.
 vertices(h::Hasse) = h.vertices
 
 Base.length(h::Hasse) = length(vertices(h))
+
+"""
+    edgelist(h)
+
+Get the array of edges — pairs of vertex names — of the Hasse diagram `h`.
+"""
+function edgelist(h::Hasse)
+    edges = NTuple{2, Name}[]
+    vs = vertices(h)
+    for v in vs, w in v.above
+        push!(edges, (name(v), name(w)))
+    end
+    edges
+end
