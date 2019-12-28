@@ -81,7 +81,10 @@ Determine whether or not `a` is below `b`.
     for i in eachindex(ys)
         is_valid = false
         for j in eachindex(xs)
-            is_valid = is_valid || xs[j] == xs[j] & ys[i]
+            if xs[j] & ys[i] == xs[j]
+                is_valid = true
+                break
+            end
         end
         if !is_valid
             return false
@@ -89,6 +92,7 @@ Determine whether or not `a` is below `b`.
     end
     true
 end
+
 isbelow(a::AbstractVertex, b::AbstractVertex) = isbelow(name(a), name(b))
 
 """
