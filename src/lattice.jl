@@ -33,6 +33,11 @@ Get an array of all vertices below `v`.
 """
 below(v::AbstractVertex) = v.below
 
+Base.length(v::AbstractVertex) = length(name(v))
+
+Base.eachindex(v::AbstractVertex) = eachindex(name(v))
+
+Base.getindex(v::AbstractVertex, idx...) = getindex(name(v), idx...)
 
 """
     Name = Vector{Int}
@@ -234,6 +239,10 @@ Get the array of vertices of the Hasse diagram `h`.
 vertices(h::Hasse) = h.vertices
 
 Base.length(h::Hasse) = length(vertices(h))
+
+Base.eachindex(h::Hasse) = eachindex(vertices(h))
+
+Base.getindex(h::Hasse, idx...) = getindex(vertices(h), idx...)
 
 """
     edgelist(h)
