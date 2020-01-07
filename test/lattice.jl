@@ -4,9 +4,9 @@ macro testhasse(t, n, bottom, top)
     vertices = Symbol("VERTICES_$n")
     quote
         let h = Hasse{$t}($n)
-            @test name(top(h)) == $top
-            @test name(bottom(h)) == $bottom
-            @test name.(vertices(h)) == $vertices
+            @test id(top(h)) == $top
+            @test id(bottom(h)) == $bottom
+            @test id.(vertices(h)) == $vertices
         end
     end
 end
@@ -19,7 +19,7 @@ end
     @test_throws TypeError Vertex{Int, Vertex{Float64}}
 
     let v = Vertex([1, 2], 2, Vertex{Int}[], Vertex{Int}[])
-        @test name(v) == [1,2]
+        @test id(v) == [1,2]
         @test payload(v) == 2
         @test above(v) == Vertex{Int}[]
         @test below(v) == Vertex{Int}[]
@@ -27,7 +27,7 @@ end
     end
 
     let v = Vertex([1,2], 1)
-        @test name(v) == [1,2]
+        @test id(v) == [1,2]
         @test payload(v) == 1
         @test above(v) == Vertex{Int}[]
         @test below(v) == Vertex{Int}[]
@@ -35,7 +35,7 @@ end
     end
 
     let v = Vertex{Int64}([1,2])
-        @test name(v) == [1,2]
+        @test id(v) == [1,2]
         @test payload(v) == 0
         @test above(v) == Vertex{Int}[]
         @test below(v) == Vertex{Int}[]
@@ -56,15 +56,15 @@ end
     @test length(genvertices(Vertex{Int}, 4)) == 166
     @test length(genvertices(Vertex{Int}, 5)) == 7579
 
-    @test Set(name.(genvertices(Vertex{Int}, 1))) == Set(VERTICES_1)
-    @test Set(name.(genvertices(Vertex{Int}, 2))) == Set(VERTICES_2)
-    @test Set(name.(genvertices(Vertex{Int}, 3))) == Set(VERTICES_3)
-    @test Set(name.(genvertices(Vertex{Int}, 4))) == Set(VERTICES_4)
+    @test Set(id.(genvertices(Vertex{Int}, 1))) == Set(VERTICES_1)
+    @test Set(id.(genvertices(Vertex{Int}, 2))) == Set(VERTICES_2)
+    @test Set(id.(genvertices(Vertex{Int}, 3))) == Set(VERTICES_3)
+    @test Set(id.(genvertices(Vertex{Int}, 4))) == Set(VERTICES_4)
 
-    @test name.(toposort!(genvertices(Vertex{Int}, 1))) == VERTICES_1
-    @test name.(toposort!(genvertices(Vertex{Int}, 2))) == VERTICES_2
-    @test name.(toposort!(genvertices(Vertex{Int}, 3))) == VERTICES_3
-    @test name.(toposort!(genvertices(Vertex{Int}, 4))) == VERTICES_4
+    @test id.(toposort!(genvertices(Vertex{Int}, 1))) == VERTICES_1
+    @test id.(toposort!(genvertices(Vertex{Int}, 2))) == VERTICES_2
+    @test id.(toposort!(genvertices(Vertex{Int}, 3))) == VERTICES_3
+    @test id.(toposort!(genvertices(Vertex{Int}, 4))) == VERTICES_4
 
     @testhasse Int 1 [1] [1]
     @testhasse Int 2 [1,2] [3]
@@ -72,7 +72,7 @@ end
     @testhasse Int 4 [1,2,4,8] [15]
 
     let h = Hasse{Int}(5)
-        @test name(top(h)) == [31]
-        @test name(bottom(h)) == [1,2,4,8,16]
+        @test id(top(h)) == [31]
+        @test id(bottom(h)) == [1,2,4,8,16]
     end
 end

@@ -1,6 +1,6 @@
 module Eolas
 
-export AbstractVertex, name, payload, above, below, Vertex
+export AbstractVertex, id, payload, above, below, Vertex
 export Hasse, top, bottom, vertices
 export pid, WilliamsBeer
 

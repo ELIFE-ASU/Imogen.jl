@@ -13,11 +13,11 @@ Get a vertex's payload
 payload(v::AbstractVertex) = v.payload
 
 """
-    name(v)
+    id(v)
 
-Get the name of a vertex.
+Get the id of a vertex.
 """
-name(v::AbstractVertex) = v.name
+id(v::AbstractVertex) = v.id
 
 """
     above(v)
@@ -33,56 +33,56 @@ Get an array of all vertices below `v`.
 """
 below(v::AbstractVertex) = v.below
 
-Base.length(v::AbstractVertex) = length(name(v))
+Base.length(v::AbstractVertex) = length(id(v))
 
-Base.eachindex(v::AbstractVertex) = eachindex(name(v))
+Base.eachindex(v::AbstractVertex) = eachindex(id(v))
 
-Base.getindex(v::AbstractVertex, idx...) = getindex(name(v), idx...)
+Base.getindex(v::AbstractVertex, idx...) = getindex(id(v), idx...)
 
 """
-    Name = Vector{Int}
+    VertexID = Vector{Int}
 
-A type alias for integer arrays used as names of vertices.
+A type alias for integer arrays used as ids of vertices.
 """
-const Name = Vector{Int}
+const VertexID = Vector{Int}
 
 """
     Vertex{P} <: AbstractVertex{P}
 
-A standard vertex containing a `name`, `payload`, and arrays of vertices
+A standard vertex containing a `id`, `payload`, and arrays of vertices
 `above` and `below` it.
 """
 mutable struct Vertex{P, V <: AbstractVertex{P}} <: AbstractVertex{P}
-    name::Name
+    id::VertexID
     payload::P
     above::Vector{V}
     below::Vector{V}
 end
 
 """
-    Vertex(name, p)
+    Vertex(id, p)
 
-Construct a `Vertex` with a given `name` and payload (`p`), with no vertices
+Construct a `Vertex` with a given `id` and payload (`p`), with no vertices
 above or below.
 """
-Vertex(name::Name, p::P) where P = Vertex(name, p, Vertex{P}[], Vertex{P}[])
+Vertex(id::VertexID, p::P) where P = Vertex(id, p, Vertex{P}[], Vertex{P}[])
 
 """
-    Vertex{P}(name)
+    Vertex{P}(id)
 
-Construct a `Vertex` with a given `name`, a "zeroed" payload of type `P` and no
+Construct a `Vertex` with a given `id`, a "zeroed" payload of type `P` and no
 vertices above or below.
 """
-Vertex{P}(name::Name) where P = Vertex(name, zero(P))
+Vertex{P}(id::VertexID) where P = Vertex(id, zero(P))
 
-Base.show(io::IO, v::Vertex{P,V}) where {P, V} = print(io, "Vertex(", v.name, ", ", v.payload, ")")
+Base.show(io::IO, v::Vertex{P,V}) where {P, V} = print(io, "Vertex(", v.id, ", ", v.payload, ")")
 
 """
     isbelow(a, b)
 
 Determine whether or not `a` is below `b`.
 """
-@inline function isbelow(xs::Name, ys::Name)
+@inline function isbelow(xs::VertexID, ys::VertexID)
     for i in eachindex(ys)
         is_valid = false
         for j in eachindex(xs)
@@ -98,12 +98,12 @@ Determine whether or not `a` is below `b`.
     true
 end
 
-isbelow(a::AbstractVertex, b::AbstractVertex) = isbelow(name(a), name(b))
+isbelow(a::AbstractVertex, b::AbstractVertex) = isbelow(id(a), id(b))
 
 """
     genvertices(::Type{V}, n) where {V <: AbstractVertex}
 
-Construct an array populated with all named vertices of type `V` of `n`
+Construct an array populated with all vertices of type `V` of `n`
 elements.
 """
 function genvertices(::Type{V}, n::Int64) where {V <: AbstractVertex}
@@ -247,13 +247,13 @@ Base.getindex(h::Hasse, idx...) = getindex(vertices(h), idx...)
 """
     edgelist(h)
 
-Get the array of edges — pairs of vertex names — of the Hasse diagram `h`.
+Get the array of edges — pairs of vertex ids — of the Hasse diagram `h`.
 """
 function edgelist(h::Hasse)
-    edges = NTuple{2, Name}[]
+    edges = NTuple{2, VertexID}[]
     vs = vertices(h)
     for v in vs, w in v.above
-        push!(edges, (name(v), name(w)))
+        push!(edges, (id(v), id(w)))
     end
     edges
 end
