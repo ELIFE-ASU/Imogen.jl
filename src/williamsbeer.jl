@@ -12,6 +12,8 @@ Base.:(==)(p::WilliamsBeer, q::WilliamsBeer) = p.Iₘᵢₙ == q.Iₘᵢₙ && p
 
 Base.:≈(p::WilliamsBeer, q::WilliamsBeer) = p.Iₘᵢₙ ≈ q.Iₘᵢₙ && p.Π ≈ q.Π
 
+Base.iszero(p::WilliamsBeer) = p.Π == zero(p.Π)
+
 mutable struct Dist
     data::Vector{Int}
     b::Int

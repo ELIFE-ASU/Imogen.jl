@@ -87,6 +87,8 @@ function Base.show(io::IO, v::UnnamedVertex)
     print(io, "UnnamedVertex(", v.id, ", ", v.payload, ")")
 end
 
+clone(v::UnnamedVertex) = UnnamedVertex(id(v), payload(v))
+
 mutable struct Vertex{N, P, V <: AbstractNamedVertex{N,P}} <: AbstractNamedVertex{N,P}
     id::VertexID
     name::Vector{Vector{N}}
@@ -108,6 +110,8 @@ function Base.show(io::IO, v::Vertex)
 end
 
 name(v::Vertex) = v.name
+
+clone(v::Vertex) = Vertex(id(v), name(v), payload(v))
 
 function Base.convert(::Type{UnnamedVertex{T}}, v::Vertex{N,T}) where {N,T}
     a = convert(Vector{UnnamedVertex{T}}, above(v))
@@ -336,3 +340,12 @@ function edgelist(h::Hasse)
     end
     edges
 end
+
+function prune(f::Function, h::Hasse)
+    vs = clone.(filter(f, vertices(h)))
+    if isempty(vs)
+        throw(ErrorException("pruned diagram has no vertices"))
+    end
+    Hasse(vs)
+end
+prune(h::Hasse) = prune(!iszero ∘ payload, h)

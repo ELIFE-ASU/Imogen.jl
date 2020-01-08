@@ -91,6 +91,44 @@ end
         @test id(top(h)) == [31]
         @test id(bottom(h)) == [1,2,4,8,16]
     end
+
+    @testset "clone" begin
+        let v = UnnamedVertex([1], 1)
+            w = UnnamedVertex([2], 2)
+            x = UnnamedVertex([1,2], 3, UnnamedVertex{Int}[v,w], UnnamedVertex{Int}[])
+            v.below = [x]
+            w.below = [x]
+
+            v′ = clone(v)
+            x′ = clone(x)
+
+            @test id(v) == [1]
+            @test payload(v) == 1
+            @test above(v) == UnnamedVertex{Int}[]
+            @test below(v) == [x]
+
+            @test id(v′) == [1]
+            @test payload(v′) == 1
+            @test above(v′) == UnnamedVertex{Int}[]
+            @test below(v′) == UnnamedVertex{Int}[]
+
+            @test id(x) == [1,2]
+            @test payload(x) == 3
+            @test above(x) == [v,w]
+            @test below(x) == UnnamedVertex{Int}[]
+
+            @test id(x′) == [1,2]
+            @test payload(x′) == 3
+            @test above(x′) == UnnamedVertex{Int}[]
+            @test below(x′) == UnnamedVertex{Int}[]
+        end
+    end
+
+    @testset "prune" begin
+        let h = Hasse(Int, 3)
+            @test_throws ErrorException prune(h)
+        end
+    end
 end
 
 @testset "Named Lattice" begin
@@ -164,5 +202,47 @@ end
 
         @test id(bottom(h)) == [1,2,4,8,16]
         @test name(bottom(h)) == [[:a],[:b],[:c],[:d],[:e]]
+    end
+
+    @testset "clone" begin
+        let v = Vertex([1], [[:a]], 1)
+            w = Vertex([2], [[:b]], 2)
+            x = Vertex([1,2], [[:a,:b]], 3, Vertex{Symbol,Int}[v,w], Vertex{Symbol,Int}[])
+            v.below = [x]
+            w.below = [x]
+
+            v′ = clone(v)
+            x′ = clone(x)
+
+            @test id(v) == [1]
+            @test name(v) == [[:a]]
+            @test payload(v) == 1
+            @test above(v) == Vertex{Symbol,Int}[]
+            @test below(v) == [x]
+
+            @test id(v′) == [1]
+            @test name(v) == [[:a]]
+            @test payload(v′) == 1
+            @test above(v′) == Vertex{Symbol,Int}[]
+            @test below(v′) == Vertex{Symbol,Int}[]
+
+            @test id(x) == [1,2]
+            @test name(x) == [[:a, :b]]
+            @test payload(x) == 3
+            @test above(x) == [v,w]
+            @test below(x) == Vertex{Symbol,Int}[]
+
+            @test id(x′) == [1,2]
+            @test name(x′) == [[:a, :b]]
+            @test payload(x′) == 3
+            @test above(x′) == Vertex{Symbol,Int}[]
+            @test below(x′) == Vertex{Symbol,Int}[]
+        end
+    end
+
+    @testset "prune" begin
+        let h = Hasse(Int, [:a,:b,:c])
+            @test_throws ErrorException prune(h)
+        end
     end
 end

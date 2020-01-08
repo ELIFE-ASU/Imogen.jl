@@ -2,6 +2,14 @@ function near(a::WilliamsBeer, b::WilliamsBeer; ϵ=1e-10)
     near(a.Iₘᵢₙ, b.Iₘᵢₙ; ϵ=ϵ) && near(a.Π, b.Π; ϵ=ϵ)
 end
 
+@testset "Williams and Beer Primatives" begin
+    @test iszero(zero(WilliamsBeer))
+    @test iszero(WilliamsBeer(0.0, 0.0))
+    @test iszero(WilliamsBeer(1.0, 0.0))
+    @test !iszero(WilliamsBeer(0.0, 1.0))
+    @test !iszero(WilliamsBeer(1.0, 1.0))
+end
+
 @testset "Williams and Beer (Unnamed)" begin
     let lattice = pid(WilliamsBeer, [1,2,2,1], [1 2 1 2; 1 1 2 2])
         expect = [WilliamsBeer(0.0, 0.0),
@@ -85,6 +93,68 @@ end
         lattice = pid(WilliamsBeer, stimulus, responses)
         total = mapreduce(α -> payload(α).Π, +, vertices(lattice))
         near(total, payload(top(lattice)).Iₘᵢₙ)
+    end
+
+    @testset "prune" begin
+        @test_throws ErrorException prune(Hasse(WilliamsBeer, 3))
+
+        let lattice = pid(WilliamsBeer, [1,2,2,1], [1 2 1 2; 1 1 2 2]) |> prune
+            expect = [WilliamsBeer(1.0, 1.0)]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i])
+            end
+        end
+
+        let lattice = pid(WilliamsBeer, [1,1,1,2], [1 2 1 2; 1 1 2 2]) |> prune
+            x = 1.5 - 0.75 * log2(3)
+            expect = [WilliamsBeer(x, x),
+                      WilliamsBeer(x + 0.5, 0.5)]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i])
+            end
+        end
+
+        let lattice = pid(WilliamsBeer, [1,2,2,2], [1 2 1 2; 1 1 2 2]) |> prune
+            x = 1.5 - 0.75 * log2(3)
+            expect = [WilliamsBeer(x, x),
+                      WilliamsBeer(x + 0.5, 0.5)]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i])
+            end
+        end
+
+        let expect = [WilliamsBeer(0.001317, 0.001317),
+                      WilliamsBeer(0.011000, 0.009683),
+                      WilliamsBeer(0.012888, 0.001887)]
+            lattice = pid(WilliamsBeer,
+                          [1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2],
+                          [1 1 1 2 2 2 2 2 1 1 1 1 1 1 2 2 2 2 2 2;
+                           1 2 2 1 1 2 2 2 1 1 2 2 2 2 1 1 2 2 2 2]) |> prune
+
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i]; ϵ=1e-6)
+            end
+        end
+
+        let lattice = pid(WilliamsBeer, [1,2,3], [1 1 2; 1 2 1]) |> prune
+            x, y = log2(3) - 1, 1/3
+            expect = [WilliamsBeer(x, x),
+                      WilliamsBeer(x + y, y),
+                      WilliamsBeer(x + y, y),
+                      WilliamsBeer(x + 1, y)]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i])
+            end
+        end
+
+        let lattice = pid(WilliamsBeer, [1,2,2,3], [1 1 2 2; 1 2 2 1]) |> prune
+            expect = [WilliamsBeer(0.5, 0.5),
+                      WilliamsBeer(1.0, 0.5),
+                      WilliamsBeer(1.5, 0.5)]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i])
+            end
+        end
     end
 end
 
@@ -182,5 +252,74 @@ end
         lattice = pid(WilliamsBeer, stimulus, responses, [:a,:b,:c,:d])
         total = mapreduce(α -> payload(α).Π, +, vertices(lattice))
         near(total, payload(top(lattice)).Iₘᵢₙ)
+    end
+
+    @testset "prune" begin
+        @test_throws ErrorException prune(Hasse(WilliamsBeer, [:α, :β, :γ]))
+
+        let lattice = pid(WilliamsBeer, [1,2,2,1], [1 2 1 2; 1 1 2 2], [:a, :b]) |> prune
+            expect = [(name=[[:a,:b]], payload=WilliamsBeer(1.0, 1.0))]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i][:payload])
+                @test name(lattice[i]) == expect[i][:name]
+            end
+        end
+
+        let lattice = pid(WilliamsBeer, [1,1,1,2], [1 2 1 2; 1 1 2 2], ["Fst", "Dxy"]) |> prune
+            x = 1.5 - 0.75 * log2(3)
+            expect = [(name=[["Fst"],["Dxy"]], payload=WilliamsBeer(x, x)),
+                      (name=[["Fst","Dxy"]],   payload=WilliamsBeer(x + 0.5, 0.5))]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i][:payload])
+                @test name(lattice[i]) == expect[i][:name]
+            end
+        end
+
+        let lattice = pid(WilliamsBeer, [1,2,2,2], [1 2 1 2; 1 1 2 2], [:α, :β]) |> prune
+            x = 1.5 - 0.75 * log2(3)
+            expect = [(name=[[:α], [:β]], payload=WilliamsBeer(x, x)),
+                      (name=[[:α, :β]],   payload=WilliamsBeer(x + 0.5, 0.5))]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i][:payload])
+                @test name(lattice[i]) == expect[i][:name]
+            end
+        end
+
+        let expect = [(name=[['a'],['b']], payload=WilliamsBeer(0.001317, 0.001317)),
+                      (name=[['a']],       payload=WilliamsBeer(0.011000, 0.009683)),
+                      (name=[['a','b']],   payload=WilliamsBeer(0.012888, 0.001887))]
+            lattice = pid(WilliamsBeer,
+                          [1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2],
+                          [1 1 1 2 2 2 2 2 1 1 1 1 1 1 2 2 2 2 2 2;
+                           1 2 2 1 1 2 2 2 1 1 2 2 2 2 1 1 2 2 2 2],
+                          ['a', 'b']) |> prune
+
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i][:payload]; ϵ=1e-6)
+                @test name(lattice[i]) == expect[i][:name]
+            end
+        end
+
+        let lattice = pid(WilliamsBeer, [1,2,3], [1 1 2; 1 2 1], [8, 3]) |> prune
+            x, y = log2(3) - 1, 1/3
+            expect = [(name=[[8],[3]], payload=WilliamsBeer(x, x)),
+                      (name=[[8]],     payload=WilliamsBeer(x + y, y)),
+                      (name=[[3]],     payload=WilliamsBeer(x + y, y)),
+                      (name=[[8,3]],   payload=WilliamsBeer(x + 1, y))]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i][:payload])
+                @test name(lattice[i]) == expect[i][:name]
+            end
+        end
+
+        let lattice = pid(WilliamsBeer, [1,2,2,3], [1 1 2 2; 1 2 2 1], [0.5, 1.3]) |> prune
+            expect = [(name=[[0.5],[1.3]], payload=WilliamsBeer(0.5, 0.5)),
+                      (name=[[1.3]],       payload=WilliamsBeer(1.0, 0.5)),
+                      (name=[[0.5,1.3]],   payload=WilliamsBeer(1.5, 0.5))]
+            for i in eachindex(lattice)
+                @test near(payload(lattice[i]), expect[i][:payload])
+                @test name(lattice[i]) == expect[i][:name]
+            end
+        end
     end
 end
