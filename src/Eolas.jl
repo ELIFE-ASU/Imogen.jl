@@ -1,8 +1,9 @@
 module Eolas
 
-export AbstractVertex, id, payload, above, below, Vertex
+export AbstractVertex, AbstractUnnamedVertex, AbstractNamedVertex, id, name, payload, above, below
+export UnnamedVertex, Vertex
 export Hasse, top, bottom, vertices
-export pid, WilliamsBeer
+export WilliamsBeer, pid
 
 include("lattice.jl")
 include("info.jl")

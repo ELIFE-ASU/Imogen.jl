@@ -5,6 +5,10 @@ A supertype for all vertex types with a payload of type `P`.
 """
 abstract type AbstractVertex{P} end
 
+abstract type AbstractUnnamedVertex{P} <: AbstractVertex{P} end
+
+abstract type AbstractNamedVertex{N,P} <: AbstractVertex{P} end
+
 """
     payload(v)
 
@@ -33,6 +37,8 @@ Get an array of all vertices below `v`.
 """
 below(v::AbstractVertex) = v.below
 
+name(v::AbstractNamedVertex) = v.name
+
 Base.length(v::AbstractVertex) = length(id(v))
 
 Base.eachindex(v::AbstractVertex) = eachindex(id(v))
@@ -47,12 +53,12 @@ A type alias for integer arrays used as ids of vertices.
 const VertexID = Vector{Int}
 
 """
-    Vertex{P} <: AbstractVertex{P}
+    UnnamedVertex{P} <: AbstractVertex{P}
 
 A standard vertex containing a `id`, `payload`, and arrays of vertices
 `above` and `below` it.
 """
-mutable struct Vertex{P, V <: AbstractVertex{P}} <: AbstractVertex{P}
+mutable struct UnnamedVertex{P, V <: AbstractUnnamedVertex{P}} <: AbstractUnnamedVertex{P}
     id::VertexID
     payload::P
     above::Vector{V}
@@ -60,22 +66,54 @@ mutable struct Vertex{P, V <: AbstractVertex{P}} <: AbstractVertex{P}
 end
 
 """
-    Vertex(id, p)
+    UnnamedVertex(id, p)
 
 Construct a `Vertex` with a given `id` and payload (`p`), with no vertices
 above or below.
 """
-Vertex(id::VertexID, p::P) where P = Vertex(id, p, Vertex{P}[], Vertex{P}[])
+function UnnamedVertex(id::VertexID, p::P) where P
+    UnnamedVertex(id, p, UnnamedVertex{P}[], UnnamedVertex{P}[])
+end
 
 """
-    Vertex{P}(id)
+    UnnamedVertex{P}(id)
 
 Construct a `Vertex` with a given `id`, a "zeroed" payload of type `P` and no
 vertices above or below.
 """
-Vertex{P}(id::VertexID) where P = Vertex(id, zero(P))
+UnnamedVertex{P}(id::VertexID) where P = UnnamedVertex(id, zero(P))
 
-Base.show(io::IO, v::Vertex{P,V}) where {P, V} = print(io, "Vertex(", v.id, ", ", v.payload, ")")
+function Base.show(io::IO, v::UnnamedVertex)
+    print(io, "UnnamedVertex(", v.id, ", ", v.payload, ")")
+end
+
+mutable struct Vertex{N, P, V <: AbstractNamedVertex{N,P}} <: AbstractNamedVertex{N,P}
+    id::VertexID
+    name::Vector{Vector{N}}
+    payload::P
+    above::Vector{V}
+    below::Vector{V}
+end
+
+function Vertex(id::VertexID, name::AbstractVector{Vector{N}}, p::P) where {N,P}
+    Vertex(id, name, p, Vertex{N,P}[], Vertex{N,P}[])
+end
+
+function Vertex{N,P}(id::VertexID, name::AbstractVector{Vector{N}}) where {N,P}
+    Vertex(id, name, zero(P))
+end
+
+function Base.show(io::IO, v::Vertex)
+    print(io, "Vertex(", v.name, ", ", v.payload, ")")
+end
+
+name(v::Vertex) = v.name
+
+function Base.convert(::Type{UnnamedVertex{T}}, v::Vertex{N,T}) where {N,T}
+    a = convert(Vector{UnnamedVertex{T}}, above(v))
+    b = convert(Vector{UnnamedVertex{T}}, below(v))
+    UnnamedVertex(id(v), payload(v), a, b)
+end
 
 """
     isbelow(a, b)
@@ -101,12 +139,9 @@ end
 isbelow(a::AbstractVertex, b::AbstractVertex) = isbelow(id(a), id(b))
 
 """
-    genvertices(::Type{V}, n) where {V <: AbstractVertex}
-
-Construct an array populated with all vertices of type `V` of `n`
-elements.
+    genvertices(::Type{V}, n) where {V <: AbstractUnnamedVertex}
 """
-function genvertices(::Type{V}, n::Int64) where {V <: AbstractVertex}
+function genvertices(::Type{V}, n::Int64) where {V <: AbstractUnnamedVertex}
     if n < 1
         throw(DomainError(n, "at least one node is required"))
     end
@@ -119,7 +154,7 @@ function genvertices(::Type{V}, n::Int64) where {V <: AbstractVertex}
     vs
 end
 
-function genvertices!(vs::AbstractVector{V}, i, m, c) where {V <: AbstractVertex}
+function genvertices!(vs::AbstractVector{V}, i, m, c) where {V <: AbstractUnnamedVertex}
     if i < m
         genvertices!(vs, i+1, m, c[:])
     end
@@ -135,6 +170,54 @@ function genvertices!(vs::AbstractVector{V}, i, m, c) where {V <: AbstractVertex
         push!(c, i)
         push!(vs, V(c))
         genvertices!(vs, i+1, m, c[:])
+    end
+
+    vs
+end
+
+function extractname(nodenames::AbstractVector{N}, id::Int) where N
+    name = N[]
+    for i in eachindex(nodenames)
+        if id & (1 << (i-1)) != 0
+            push!(name, nodenames[i])
+        end
+    end
+    name
+end
+
+extractname(nodenames::AbstractVector, id::VertexID) = map(i -> extractname(nodenames, i), id)
+
+function genvertices(::Type{V}, names::AbstractVector{N}) where {N, V <: AbstractNamedVertex{N}}
+    if isempty(names)
+        throw(DomainError(n, "at least one node is required"))
+    end
+    n = length(names)
+    vs = V[]
+    m = (1 << n) - 1;
+    for i in 1:m
+        id = [i]
+        push!(vs, V(id, extractname(names, id)))
+        genvertices!(vs, names, i + 1, m, [i])
+    end
+    vs
+end
+
+function genvertices!(vs::AbstractVector{V}, names, i, m, c) where {V <: AbstractNamedVertex}
+    if i < m
+        genvertices!(vs, names, i+1, m, c[:])
+    end
+
+    if i <= m
+        z = 0
+        for j in 1:length(c)
+            z = i & c[j]
+            if (z == i || z == c[j])
+                return vs
+            end
+        end
+        push!(c, i)
+        push!(vs, V(c, extractname(names, c)))
+        genvertices!(vs, names, i+1, m, c[:])
     end
 
     vs
@@ -167,25 +250,21 @@ function toposort!(vs::AbstractVector{V}) where {V <: AbstractVertex}
 end
 
 """
-    Hasse{P}
+    Hasse{V}
 
-A Hasse diagram (lattice) with payload of type `P` on its vertices.
+A Hasse diagram (lattice) with vertices of type `V`
 """
-mutable struct Hasse{P}
-    top::Vertex{P}
-    bottom::Vertex{P}
-    vertices::Vector{Vertex{P}}
+mutable struct Hasse{V <: AbstractVertex}
+    top::V
+    bottom::V
+    vertices::Vector{V}
 end
 
-"""
-Hasse{P}(n)
+Hasse(::Type{P}, n::Int64) where P = Hasse(genvertices(UnnamedVertex{P}, n))
 
-Construct a Hasse diagram of order `n` with zeroed payloads of type `P` on its
-vertices.
-"""
-Hasse{P}(n::Int64) where P = Hasse(genvertices(Vertex{P}, n))
+Hasse(::Type{P}, names::AbstractVector{N}) where {N,P} = Hasse(genvertices(Vertex{N,P}, names))
 
-function Hasse(vs::AbstractVector{Vertex{P}}; sort::Bool=true) where P
+function Hasse(vs::AbstractVector{V}; sort::Bool=true) where {V <: AbstractVertex}
     if isempty(vs)
         throw(ArgumentError("vertex list is empty"))
     end
@@ -214,7 +293,7 @@ function Hasse(vs::AbstractVector{Vertex{P}}; sort::Bool=true) where P
         end
     end
 
-    Hasse{P}(vs[end], vs[1], vs)
+    Hasse(vs[end], vs[1], vs)
 end
 
 """

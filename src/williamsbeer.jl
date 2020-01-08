@@ -33,7 +33,13 @@ Base.getindex(dist, idx...) = getindex(dist.data, idx...)
 
 function pid(::Type{WilliamsBeer},
              stimulus::AbstractVector{Int},
-             responses::AbstractMatrix{Int})
+             responses::AbstractMatrix{Int},
+             names::Union{Nothing,AbstractVector{N}}=nothing) where N
+
+    if !isnothing(names) && length(names) != size(responses,1)
+        throw(ArgumentError("number of names provided does not match the number of responses"))
+    end
+
     bs = maximum(stimulus)
 
     L = size(responses, 1)
@@ -45,7 +51,12 @@ function pid(::Type{WilliamsBeer},
 
     sdist = accumulate!(Dist(maximum(stimulus)), stimulus)
 
-    lattice = Hasse{WilliamsBeer}(L)
+    lattice = if isnothing(names)
+        Hasse(WilliamsBeer, L)
+    else
+        Hasse(WilliamsBeer, names)
+    end
+
     for i in eachindex(lattice)
         α = lattice[i]
         for s in 1:bs
