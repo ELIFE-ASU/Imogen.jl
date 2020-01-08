@@ -183,15 +183,15 @@ Hasse{P}(n)
 Construct a Hasse diagram of order `n` with zeroed payloads of type `P` on its
 vertices.
 """
-function Hasse{P}(n::Int64) where P
-    vs = genvertices(Vertex{P}, n)
-    toposort!(vs)
-    Hasse(vs)
-end
+Hasse{P}(n::Int64) where P = Hasse(genvertices(Vertex{P}, n))
 
-function Hasse(vs::AbstractVector{Vertex{P}}) where P
+function Hasse(vs::AbstractVector{Vertex{P}}; sort::Bool=true) where P
     if isempty(vs)
         throw(ArgumentError("vertex list is empty"))
+    end
+
+    if sort
+        toposort!(vs)
     end
 
     for i in 1:length(vs)
