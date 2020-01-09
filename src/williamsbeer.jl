@@ -72,18 +72,3 @@ function pid!(h::Hasse{<:AbstractVertex{WilliamsBeer}},
 
     h
 end
-
-function pid(::Type{WilliamsBeer}, stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int})
-    pid!(Hasse(WilliamsBeer, size(responses,1)), stimulus, responses; zero=false)
-end
-
-function pid(::Type{WilliamsBeer},
-             stimulus::AbstractVector{Int},
-             responses::AbstractMatrix{Int},
-             names::AbstractVector)
-    if length(names) != size(responses,1)
-        throw(ArgumentError("number of names provided does not match the number of responses"))
-    end
-
-    pid!(Hasse(WilliamsBeer, names), stimulus, responses; zero=false)
-end
