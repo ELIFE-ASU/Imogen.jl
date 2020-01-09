@@ -3,6 +3,9 @@ uuid = "06c3e0d4-3ef7-44c8-b5b3-e8219edcdfd5"
 authors = ["Douglas G. Moore <doug@dglmoore.com>"]
 version = "0.1.0"
 
+[deps]
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
