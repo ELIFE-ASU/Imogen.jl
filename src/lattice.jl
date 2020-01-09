@@ -175,7 +175,7 @@ isbelow(a::AbstractVertex, b::AbstractVertex) = isbelow(id(a), id(b))
 """
     genvertices(::Type{V}, n) where {V <: AbstractUnnamedVertex}
 """
-function genvertices(::Type{V}, n::Int64) where {V <: AbstractUnnamedVertex}
+function genvertices(::Type{V}, n::Int) where {V <: AbstractUnnamedVertex}
     if n < 1
         throw(DomainError(n, "at least one node is required"))
     end
@@ -294,7 +294,7 @@ mutable struct Hasse{V <: AbstractVertex}
     vertices::Vector{V}
 end
 
-Hasse(::Type{P}, n::Int64) where P = Hasse(genvertices(UnnamedVertex{P}, n))
+Hasse(::Type{P}, n::Int) where P = Hasse(genvertices(UnnamedVertex{P}, n))
 
 Hasse(::Type{P}, names::AbstractVector{N}) where {N,P} = Hasse(genvertices(Vertex{N,P}, names))
 

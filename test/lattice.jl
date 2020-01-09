@@ -50,7 +50,7 @@ end
         @test string(v) == "UnnamedVertex([1, 2], 1)"
     end
 
-    let v = UnnamedVertex{Int64}([1,2])
+    let v = UnnamedVertex{Int}([1,2])
         @test id(v) == [1,2]
         @test payload(v) == 0
         @test above(v) == UnnamedVertex{Int}[]
@@ -158,7 +158,7 @@ end
         @test string(v) == "Vertex([{:a, :b}], 1)"
     end
 
-    let v = Vertex{Symbol,Int64}([1,6], [[:a],[:b,:c]])
+    let v = Vertex{Symbol,Int}([1,6], [[:a],[:b,:c]])
         @test id(v) == [1,6]
         @test name(v) == [[:a],[:b,:c]]
         @test payload(v) == 0
