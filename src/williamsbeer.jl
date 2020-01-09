@@ -1,3 +1,5 @@
+using Printf
+
 mutable struct WilliamsBeer
     Iₘᵢₙ::Float64
     Π::Float64
@@ -14,7 +16,9 @@ Base.:≈(p::WilliamsBeer, q::WilliamsBeer) = p.Iₘᵢₙ ≈ q.Iₘᵢₙ && p
 
 Base.iszero(p::WilliamsBeer) = p.Π == zero(p.Π)
 
-Base.show(io::IO, ::MIME"text/dot", p::WilliamsBeer) = print(io, "Iₘᵢₙ = ", p.Iₘᵢₙ, ", Π = ", p.Π)
+function Base.show(io::IO, ::MIME"text/dot", p::WilliamsBeer)
+    @printf io "Π = %0.3f\\nIₘᵢₙ = %0.3f" p.Π p.Iₘᵢₙ
+end
 
 function pid!(h::Hasse{<:AbstractVertex{WilliamsBeer}},
              stimulus::AbstractVector{Int},
