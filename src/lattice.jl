@@ -294,9 +294,21 @@ mutable struct Hasse{V <: AbstractVertex}
     vertices::Vector{V}
 end
 
-Hasse(::Type{P}, n::Int) where P = Hasse(genvertices(UnnamedVertex{P}, n))
+function Hasse(::Type{P}, n::Int) where P
+    if n > 5
+        @warn """Hasse diagrams are computationally expensive to build for n > 5.
+        This is gonna take a while and lot of memory""" n
+    end
+    Hasse(genvertices(UnnamedVertex{P}, n))
+end
 
-Hasse(::Type{P}, names::AbstractVector{N}) where {N,P} = Hasse(genvertices(Vertex{N,P}, names))
+function Hasse(::Type{P}, names::AbstractVector{N}) where {N,P}
+    if length(names) > 5
+        @warn """Hasse diagrams are computationally expensive to build for n > 5.
+        This is gonna take a while and lot of memory""" n=length(names)
+    end
+    Hasse(genvertices(Vertex{N,P}, names))
+end
 
 function Hasse(vs::AbstractVector{V}; sort::Bool=true) where {V <: AbstractVertex}
     if isempty(vs)
