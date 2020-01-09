@@ -2,7 +2,7 @@ module Eolas
 
 export AbstractVertex, AbstractUnnamedVertex, AbstractNamedVertex, id, name, payload, above, below
 export UnnamedVertex, Vertex, clone
-export Hasse, top, bottom, vertices, prune
+export Hasse, top, bottom, vertices, prune, graphviz
 export WilliamsBeer, pid
 
 include("lattice.jl")

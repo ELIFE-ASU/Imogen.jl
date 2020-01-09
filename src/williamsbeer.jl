@@ -14,6 +14,8 @@ Base.:≈(p::WilliamsBeer, q::WilliamsBeer) = p.Iₘᵢₙ ≈ q.Iₘᵢₙ && p
 
 Base.iszero(p::WilliamsBeer) = p.Π == zero(p.Π)
 
+Base.show(io::IO, ::MIME"text/dot", p::WilliamsBeer) = print(io, "Iₘᵢₙ = ", p.Iₘᵢₙ, ", Π = ", p.Π)
+
 mutable struct Dist
     data::Vector{Int}
     b::Int

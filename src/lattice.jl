@@ -1,13 +1,11 @@
+using Base.Meta
+
 """
     AbstractVertex{P}
 
 A supertype for all vertex types with a payload of type `P`.
 """
 abstract type AbstractVertex{P} end
-
-abstract type AbstractUnnamedVertex{P} <: AbstractVertex{P} end
-
-abstract type AbstractNamedVertex{N,P} <: AbstractVertex{P} end
 
 """
     payload(v)
@@ -37,13 +35,53 @@ Get an array of all vertices below `v`.
 """
 below(v::AbstractVertex) = v.below
 
-name(v::AbstractNamedVertex) = v.name
-
 Base.length(v::AbstractVertex) = length(id(v))
 
 Base.eachindex(v::AbstractVertex) = eachindex(id(v))
 
 Base.getindex(v::AbstractVertex, idx...) = getindex(id(v), idx...)
+
+bookend(x::AbstractString, left::AbstractString="[", right::AbstractString="]") = left * x * right
+
+prettyname(v::AbstractVertex) = bookend(join(repr.(id(v)), ", "))
+
+function Base.show(io::IO, v::AbstractVertex)
+    ex = Meta.parse(string(typeof(v)))
+    t = if ex isa Symbol
+        string(ex)
+    else
+        string(ex.args[1])
+    end
+    print(io, t, "(", prettyname(v), ", ", payload(v), ")")
+end
+
+function Base.show(io::IO, ::MIME"text/dot", v::AbstractVertex)
+    print(io, "[label=\"", prettyname(v), "\\n")
+    try
+        show(io, MIME("text/dot"), payload(v))
+    catch
+        print(io, payload(v))
+    end
+    print(io, "\"]")
+end
+
+abstract type AbstractUnnamedVertex{P} <: AbstractVertex{P} end
+
+abstract type AbstractNamedVertex{N,P} <: AbstractVertex{P} end
+
+name(v::AbstractNamedVertex) = v.name
+
+function prettyname(v::AbstractNamedVertex)
+    ns = String[]
+    for n in name(v)
+        push!(ns, if length(n) == 1
+            join(repr.(n), ", ")
+        else
+            bookend(join(repr.(n), ", "), "{", "}")
+        end)
+    end
+    bookend(join(ns, ", "))
+end
 
 """
     VertexID = Vector{Int}
@@ -83,10 +121,6 @@ vertices above or below.
 """
 UnnamedVertex{P}(id::VertexID) where P = UnnamedVertex(id, zero(P))
 
-function Base.show(io::IO, v::UnnamedVertex)
-    print(io, "UnnamedVertex(", v.id, ", ", v.payload, ")")
-end
-
 clone(v::UnnamedVertex) = UnnamedVertex(id(v), payload(v))
 
 mutable struct Vertex{N, P, V <: AbstractNamedVertex{N,P}} <: AbstractNamedVertex{N,P}
@@ -104,12 +138,6 @@ end
 function Vertex{N,P}(id::VertexID, name::AbstractVector{Vector{N}}) where {N,P}
     Vertex(id, name, zero(P))
 end
-
-function Base.show(io::IO, v::Vertex)
-    print(io, "Vertex(", v.name, ", ", v.payload, ")")
-end
-
-name(v::Vertex) = v.name
 
 clone(v::Vertex) = Vertex(id(v), name(v), payload(v))
 
@@ -349,3 +377,31 @@ function prune(f::Function, h::Hasse)
     Hasse(vs)
 end
 prune(h::Hasse) = prune(!iszero ∘ payload, h)
+
+Base.istextmime(::MIME"text/dot") = true
+
+function Base.show(io::IO, ::MIME"text/dot", h::Hasse)
+    println(io, "digraph Hasse {")
+    println(io, "  rankdir=\"BT\";")
+    vs = vertices(h)
+    for i in eachindex(vs)
+        print(io, "  ", i, " ")
+        show(io, MIME("text/dot"), vs[i])
+        println(io, ";")
+    end
+    println(io)
+    for i in eachindex(vs)
+        for v in above(vs[i])
+            j = findfirst(w -> v == w, vs)
+            println(io, "  ", i, " -> ", j, ";")
+        end
+    end
+    println(io, "}")
+end
+
+function graphviz(filename::AbstractString, h::Hasse;
+                  format=lowercase(last(splitext(filename)))[2:end])
+    open(`dot -T$format -o$filename`, "w", stdout) do io
+        show(io, MIME("text/dot"), h)
+    end
+end

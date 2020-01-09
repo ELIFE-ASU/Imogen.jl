@@ -146,25 +146,25 @@ end
         @test payload(v) == 2
         @test above(v) == Vertex{Symbol,Int}[]
         @test below(v) == Vertex{Symbol,Int}[]
-        @test string(v) == "Vertex(Array{Symbol,1}[[:a], [:b]], 2)"
+        @test string(v) == "Vertex([:a, :b], 2)"
     end
 
-    let v = Vertex([1,2], [[:a],[:b]], 1)
-        @test id(v) == [1,2]
-        @test name(v) == [[:a],[:b]]
+    let v = Vertex([3], [[:a,:b]], 1)
+        @test id(v) == [3]
+        @test name(v) == [[:a,:b]]
         @test payload(v) == 1
         @test above(v) == Vertex{Symbol,Int}[]
         @test below(v) == Vertex{Symbol,Int}[]
-        @test string(v) == "Vertex(Array{Symbol,1}[[:a], [:b]], 1)"
+        @test string(v) == "Vertex([{:a, :b}], 1)"
     end
 
-    let v = Vertex{Symbol,Int64}([1,2], [[:a],[:b]])
-        @test id(v) == [1,2]
-        @test name(v) == [[:a],[:b]]
+    let v = Vertex{Symbol,Int64}([1,6], [[:a],[:b,:c]])
+        @test id(v) == [1,6]
+        @test name(v) == [[:a],[:b,:c]]
         @test payload(v) == 0
         @test above(v) == Vertex{Symbol,Int}[]
         @test below(v) == Vertex{Symbol,Int}[]
-        @test string(v) == "Vertex(Array{Symbol,1}[[:a], [:b]], 0)"
+        @test string(v) == "Vertex([:a, {:b, :c}], 0)"
     end
 
     @test isbelow(Vertex{Symbol,Int}([1,2], [[:a], [:b]]), Vertex{Symbol,Int}([1], [[:a]]))
