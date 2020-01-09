@@ -11,3 +11,11 @@ function pid(::Type{T}, stimulus::AbstractVector{Int},
 
     pid!(Hasse(T, names), stimulus, responses; zero=false)
 end
+
+function pid!(h::Hasse, df::DataFrame, stimulus, responses, args...; kwargs...)
+    pid!(h, df[:, stimulus], transpose(Array(df[:, responses])), args...; kwargs...)
+end
+
+function pid(::Type{T}, df::DataFrame, stimulus, responses, args...; kwargs...) where T
+    pid(T, df[:, stimulus], transpose(Array(df[:, responses])), responses, args...; kwargs...)
+end
