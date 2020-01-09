@@ -5,6 +5,7 @@ export UnnamedVertex, Vertex, clone
 export Hasse, top, bottom, vertices, zero!, prune, graphviz
 export WilliamsBeer, pid, pid!
 
+include("util.jl")
 include("lattice.jl")
 include("info.jl")
 include("williamsbeer.jl")
