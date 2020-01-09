@@ -14,6 +14,8 @@ Get a vertex's payload
 """
 payload(v::AbstractVertex) = v.payload
 
+zero!(v::AbstractVertex{P}) where P = v.payload = zero(P)
+
 """
     id(v)
 
@@ -354,6 +356,8 @@ Base.length(h::Hasse) = length(vertices(h))
 Base.eachindex(h::Hasse) = eachindex(vertices(h))
 
 Base.getindex(h::Hasse, idx...) = getindex(vertices(h), idx...)
+
+zero!(h::Hasse) = zero!.(vertices(h))
 
 """
     edgelist(h)

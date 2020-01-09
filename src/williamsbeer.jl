@@ -35,13 +35,12 @@ Base.length(dist) = dist.b
 
 Base.getindex(dist, idx...) = getindex(dist.data, idx...)
 
-function pid(::Type{WilliamsBeer},
+function pid!(h::Hasse{<:AbstractVertex{WilliamsBeer}},
              stimulus::AbstractVector{Int},
-             responses::AbstractMatrix{Int},
-             names::Union{Nothing,AbstractVector{N}}=nothing) where N
-
-    if !isnothing(names) && length(names) != size(responses,1)
-        throw(ArgumentError("number of names provided does not match the number of responses"))
+             responses::AbstractMatrix{Int};
+             zero=true)
+    if zero
+        zero!(h)
     end
 
     bs = maximum(stimulus)
@@ -55,14 +54,8 @@ function pid(::Type{WilliamsBeer},
 
     sdist = accumulate!(Dist(maximum(stimulus)), stimulus)
 
-    lattice = if isnothing(names)
-        Hasse(WilliamsBeer, L)
-    else
-        Hasse(WilliamsBeer, names)
-    end
-
-    for i in eachindex(lattice)
-        α = lattice[i]
+    for i in eachindex(h)
+        α = h[i]
         for s in 1:bs
             x = si[α[1]][s]
             for k in 2:length(α)
@@ -73,8 +66,8 @@ function pid(::Type{WilliamsBeer},
         payload(α).Iₘᵢₙ /= sdist.N;
     end
 
-    for i in eachindex(lattice)
-        α = lattice[i]
+    for i in eachindex(h)
+        α = h[i]
         for s in 1:bs
             u = -Inf
             for β in below(α)
@@ -92,5 +85,20 @@ function pid(::Type{WilliamsBeer},
         payload(α).Π = payload(α).Iₘᵢₙ - payload(α).Π / sdist.N
     end
 
-    lattice
+    h
+end
+
+function pid(::Type{WilliamsBeer}, stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int})
+    pid!(Hasse(WilliamsBeer, size(responses,1)), stimulus, responses; zero=false)
+end
+
+function pid(::Type{WilliamsBeer},
+             stimulus::AbstractVector{Int},
+             responses::AbstractMatrix{Int},
+             names::AbstractVector)
+    if length(names) != size(responses,1)
+        throw(ArgumentError("number of names provided does not match the number of responses"))
+    end
+
+    pid!(Hasse(WilliamsBeer, names), stimulus, responses; zero=false)
 end
