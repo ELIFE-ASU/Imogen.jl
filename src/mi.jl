@@ -6,7 +6,7 @@ mutable struct MIDist <: EmpericalDist
     MIDist() = new(zeros(Int, 2, 2), zeros(Int, 2), zeros(Int, 2), 0)
 end
 
-MIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = accumulate!(MIDist(), xs, ys)
+MIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = observe!(MIDist(), xs, ys)
 
 function entropy(dist::MIDist)
     mi = 0.0
@@ -19,7 +19,7 @@ function entropy(dist::MIDist)
     log2(dist.N) + mi/dist.N
 end
 
-function accumulate!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
+function observe!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
     dist.N += length(xs)
     @inbounds for i in eachindex(xs)
         x, y = xs[i], ys[i]
@@ -39,7 +39,7 @@ end
 end
 
 function mutualinfo!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
-    entropy(accumulate!(dist, xs, ys))
+    entropy(observe!(dist, xs, ys))
 end
 
 mutualinfo(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = mutualinfo!(MIDist(), xs, ys)

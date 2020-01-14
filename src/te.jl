@@ -25,7 +25,7 @@ end
     dist
 end
 
-function accumulate!(dist::TEDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
+function observe!(dist::TEDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
     rng = dist.k:(length(ys)-1)
     dist.N = length(rng)
     history, q = 0, 1
@@ -69,7 +69,7 @@ function entropy(dist::TEDist)
 end
 
 function transferentropy!(dist::TEDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
-    entropy(accumulate!(dist, xs, ys))
+    entropy(observe!(dist, xs, ys))
 end
 
 function transferentropy(xs::AbstractVector{Int}, ys::AbstractVector{Int}, k::Int)

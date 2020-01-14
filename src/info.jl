@@ -7,7 +7,7 @@ mutable struct Dist <: EmpericalDist
     Dist(b) = new(zeros(Int, b), b, 0)
 end
 
-function accumulate!(dist::Dist, xs::AbstractVector{Int})
+function observe!(dist::Dist, xs::AbstractVector{Int})
     dist.N += length(xs)
     for i in eachindex(xs)
         dist.data[xs[i]] += 1

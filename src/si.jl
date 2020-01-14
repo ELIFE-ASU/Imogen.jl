@@ -10,7 +10,7 @@ mutable struct SIDist <: EmpericalDist
     end
 end
 
-function accumulate!(dist::SIDist, x1::AbstractVector{Int}, x2::AbstractVector{Int})
+function observe!(dist::SIDist, x1::AbstractVector{Int}, x2::AbstractVector{Int})
     dist.N += length(x1)
     for i in eachindex(x1)
         dist.joint[x1[i], x2[i]] += 1
@@ -39,12 +39,12 @@ end
 function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int})
     boxed = box(responses)
     dist = SIDist(maximum(stimulus), maximum(boxed))
-    entropy(accumulate!(dist, stimulus, boxed))
+    entropy(observe!(dist, stimulus, boxed))
 end
 
 function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractVector{Int})
     dist = SIDist(maximum(stimulus), maximum(responses))
-    entropy(accumulate!(dist, stimulus, responses))
+    entropy(observe!(dist, stimulus, responses))
 end
 
 function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int},
