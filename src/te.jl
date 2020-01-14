@@ -54,7 +54,7 @@ function observe!(dist::TEDist, source::AbstractVector{Int}, target::AbstractVec
         throw(ArgumentError("target series is too short given k=$(dist.k)"))
     end
     rng = dist.k:(length(target)-1)
-    dist.N = length(rng)
+    dist.N += length(rng)
     history = 0
     for i in 1:dist.k
         history = dist.bt*history + target[i] - 1;
