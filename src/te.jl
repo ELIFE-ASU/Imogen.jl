@@ -25,6 +25,19 @@ mutable struct TEDist <: InfoDist
     end
 end
 
+function TEDist(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
+    if isempty(source) || isempty(target)
+        throw(ArgumentError("arguments must not be empty"))
+    end
+    smin, smax = extrema(source)
+    tmin, tmax = extrema(target)
+    if smin < 1 || tmin < 1
+        throw(ArgumentError("observations must be positive, nonzero"))
+    end
+    bs, bt = max(2, smax), max(2, tmax)
+    observe!(TEDist(bs, bt, k), source, target)
+end
+
 @inline function clear!(dist::TEDist)
     dist.states[:] .= 0
     dist.histories[:] .= 0
@@ -35,6 +48,11 @@ end
 end
 
 function observe!(dist::TEDist, source::AbstractVector{Int}, target::AbstractVector{Int})
+    if length(source) != length(target)
+        throw(ArgumentError("arguments must have the same length"))
+    elseif length(target) <= dist.k
+        throw(ArgumentError("target series is too short given k=$(dist.k)"))
+    end
     rng = dist.k:(length(target)-1)
     dist.N = length(rng)
     history = 0
@@ -69,11 +87,5 @@ function transferentropy!(dist::TEDist, source::AbstractVector{Int}, target::Abs
 end
 
 function transferentropy(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
-    smin, smax = extrema(source)
-    tmin, tmax = extrema(target)
-    if smin < 1 || tmin < 1
-        throw(ArgumentError("observations must be positive, nonzero"))
-    end
-    bs, bt = max(2, smax), max(2, tmax)
-    transferentropy!(TEDist(bs, bt, k), source, target)
+    estimate(TEDist(source, target, k))
 end
