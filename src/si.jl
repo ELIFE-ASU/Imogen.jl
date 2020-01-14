@@ -6,16 +6,34 @@ mutable struct SIDist <: InfoDist
     b2::Int
     N::Int
     function SIDist(b1::Int, b2::Int)
+        if b1 < 1 || b2 < 1
+            throw(ArgumentError("the support of each random variable must be at least 2"))
+        end
         new(zeros(Int, b1, b2), zeros(Int, b1), zeros(Int, b2), b1, b2, 0)
     end
 end
 
-function observe!(dist::SIDist, x1::AbstractVector{Int}, x2::AbstractVector{Int})
-    dist.N += length(x1)
-    for i in eachindex(x1)
-        dist.joint[x1[i], x2[i]] += 1
-        dist.m1[x1[i]] += 1
-        dist.m2[x2[i]] += 1
+function SIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int})
+    if isempty(xs) || isempty(ys)
+        throw(ArgumentError("arguments must not be empty"))
+    end
+    xmin, xmax = extrema(xs)
+    ymin, ymax = extrema(ys)
+    if xmin < 1 || ymin < 1
+        throw(ArgumentError("observations must be positive, nonzero"))
+    end
+    observe!(SIDist(max(2, xmax), max(2, ymax)), xs, ys)
+end
+
+function observe!(dist::SIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
+    if length(xs) != length(ys)
+        throw(ArgumentError("arguments must have the same length"))
+    end
+    dist.N += length(xs)
+    for i in eachindex(xs)
+        dist.joint[xs[i], ys[i]] += 1
+        dist.m1[xs[i]] += 1
+        dist.m2[ys[i]] += 1
     end
     dist
 end
@@ -36,18 +54,36 @@ function estimate(dist::SIDist)
     si
 end
 
-function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int})
-    boxed = box(responses)
-    dist = SIDist(maximum(stimulus), maximum(boxed))
-    estimate(observe!(dist, stimulus, boxed))
+@inline function clear!(dist::SIDist)
+    dist.joint[:] .= 0
+    dist.m1[:] .= 0
+    dist.m2[:] .= 0
+    dist.N = 0
+    dist
 end
 
-function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractVector{Int})
-    dist = SIDist(maximum(stimulus), maximum(responses))
+function specificinfo!(si::SIDist, stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int})
+    specificinfo!(si, stimulus, box(responses))
+end
+
+function specificinfo!(si::SIDist, stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int},
+                       subset::AbstractVector{Int})
+    specificinfo!(si, stimulus, @view responses[subset, :])
+end
+
+function specificinfo!(si::SIDist, stimulus::AbstractVector{Int}, responses::AbstractVector{Int})
     estimate(observe!(dist, stimulus, responses))
+end
+
+function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int})
+    specificinfo(stimulus, box(responses))
 end
 
 function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int},
                       subset::AbstractVector{Int})
     specificinfo(stimulus, @view responses[subset, :])
+end
+
+function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractVector{Int})
+    estimate(SIDist(stimulus, responses))
 end
