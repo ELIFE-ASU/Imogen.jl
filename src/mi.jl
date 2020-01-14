@@ -2,11 +2,25 @@ mutable struct MIDist <: InfoDist
     joint::Matrix{Int}
     m1::Vector{Int}
     m2::Vector{Int}
+    b1::Int
+    b2::Int
     N::Int
-    MIDist() = new(zeros(Int, 2, 2), zeros(Int, 2), zeros(Int, 2), 0)
+    function MIDist(b1::Integer, b2::Integer)
+        if b1 < 2 || b2 < 2
+            throw(ArgumentError("the support of each random variable must be at least 2"))
+        end
+        new(zeros(Int, b1, b2), zeros(Int, b1), zeros(Int, b2), b1, b2, 0)
+    end
 end
 
-MIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = observe!(MIDist(), xs, ys)
+function MIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int})
+    xmin, xmax = extrema(xs)
+    ymin, ymax = extrema(ys)
+    if xmin < 1 || ymin < 1
+        throw(ArgumentError("observations must be positive, nonzero"))
+    end
+    observe!(MIDist(max(2, xmax), max(2, ymax)), xs, ys)
+end
 
 function estimate(dist::MIDist)
     entropy(dist.m1, dist.N) + entropy(dist.m2, dist.N) - entropy(dist.joint, dist.N)
@@ -14,7 +28,7 @@ end
 
 function observe!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
     dist.N += length(xs)
-    @inbounds for i in eachindex(xs)
+    for i in eachindex(xs)
         x, y = xs[i], ys[i]
         dist.m1[x] += 1
         dist.m2[y] += 1
@@ -35,4 +49,4 @@ function mutualinfo!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{I
     estimate(observe!(dist, xs, ys))
 end
 
-mutualinfo(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = mutualinfo!(MIDist(), xs, ys)
+mutualinfo(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = estimate(MIDist(xs, ys))
