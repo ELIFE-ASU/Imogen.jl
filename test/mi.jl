@@ -43,6 +43,33 @@
         @test mi.N == 8
     end
 
+    @test_throws ArgumentError MIDist([0,1,1], [1,1,2])
+    @test_throws ArgumentError MIDist([2,1,1], [0,1,2])
+    @test_throws ArgumentError MIDist(Int[], Int[])
+    @test_throws ArgumentError MIDist(Int[], [1,2])
+    @test_throws ArgumentError MIDist([1,2], Int[])
+    @test_throws ArgumentError MIDist([1,2,2], [1,2])
+    @test_throws ArgumentError MIDist([1,2], [1,2,2])
+
+    let mi = MIDist([1,1,1,1,1,2,2,2], [2,2,2,2,1,1,2,2])
+        @test mi.joint == [1 4; 1 2]
+        @test mi.m1 == [5, 3]
+        @test mi.m2 == [2, 6]
+        @test mi.b1 == 2
+        @test mi.b2 == 2
+        @test mi.N == 8
+    end
+
+    let mi = MIDist([1,1,1,1,1,1,1,1], [2,2,2,2,1,1,2,2])
+        @test mi.joint == [2 6; 0 0]
+        @test mi.m1 == [8, 0]
+        @test mi.m2 == [2, 6]
+        @test mi.b1 == 2
+        @test mi.b2 == 2
+        @test mi.N == 8
+    end
+
+    @test_throws ArgumentError observe!(MIDist(2,2), [1,2,3], [1,2])
     @test_throws BoundsError observe!(MIDist(2, 2), [0,1,0,1], [0,0,1,1])
     @test_throws BoundsError observe!(MIDist(2, 2), [2,3,2,3], [2,2,3,3])
 

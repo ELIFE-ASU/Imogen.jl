@@ -14,6 +14,9 @@ mutable struct MIDist <: InfoDist
 end
 
 function MIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int})
+    if isempty(xs) || isempty(ys)
+        throw(ArgumentError("arguments must not be empty"))
+    end
     xmin, xmax = extrema(xs)
     ymin, ymax = extrema(ys)
     if xmin < 1 || ymin < 1
@@ -27,6 +30,9 @@ function estimate(dist::MIDist)
 end
 
 function observe!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
+    if length(xs) != length(ys)
+        throw(ArgumentError("arguments must have the same length"))
+    end
     dist.N += length(xs)
     for i in eachindex(xs)
         x, y = xs[i], ys[i]
