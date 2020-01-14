@@ -1,4 +1,4 @@
-mutable struct SIDist <: EmpericalDist
+mutable struct SIDist <: InfoDist
     joint::Matrix{Int}
     m1::Vector{Int}
     m2::Vector{Int}

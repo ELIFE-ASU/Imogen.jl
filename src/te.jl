@@ -1,4 +1,4 @@
-mutable struct TEDist <: EmpericalDist
+mutable struct TEDist <: InfoDist
     k::Int
     states::Vector{Int}
     histories::Vector{Int}

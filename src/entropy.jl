@@ -1,4 +1,4 @@
-mutable struct Dist <: EmpericalDist
+mutable struct Dist <: InfoDist
     data::Vector{Int}
     b::Int
     N::Int

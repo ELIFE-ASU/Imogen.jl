@@ -11,9 +11,9 @@ export UnnamedVertex, Vertex, clone
 export Hasse, top, bottom, vertices, zero!, prune, graphviz
 export WilliamsBeer, pid, pid!
 
-include("util.jl")
+include("core.jl")
 
-include("info.jl")
+include("util.jl")
 
 include("entropy.jl")
 
