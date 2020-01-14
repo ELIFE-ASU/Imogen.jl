@@ -9,14 +9,7 @@ end
 MIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = observe!(MIDist(), xs, ys)
 
 function estimate(dist::MIDist)
-    mi = 0.0
-    for i in 1:2, j in 1:2
-        p = dist.joint[i,j]
-        if !iszero(p)
-            mi += p * log2(p / (dist.m1[i] * dist.m2[j]))
-        end
-    end
-    log2(dist.N) + mi/dist.N
+    entropy(dist.m1, dist.N) + entropy(dist.m2, dist.N) - entropy(dist.joint, dist.N)
 end
 
 function observe!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
