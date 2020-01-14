@@ -1,4 +1,6 @@
-mutable struct Dist
+abstract type EmpericalDist end
+
+mutable struct Dist <: EmpericalDist
     data::Vector{Int}
     b::Int
     N::Int
