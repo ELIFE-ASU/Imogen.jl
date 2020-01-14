@@ -4,15 +4,24 @@ mutable struct TEDist <: InfoDist
     histories::Vector{Int}
     sources::Vector{Int}
     predicates::Vector{Int}
+    bs::Int
+    bt::Int
+    q::Int
     N::Int
 
-    function TEDist(k::Int)
-        q = 2^k
-        states = zeros(Int, 4q)
+    function TEDist(bs::Int, bt::Int, k::Int)
+        if bs < 2 || bt < 2
+            throw(ArgumentError("the support of each random variable must be at least 2"))
+        end
+        if k < 1
+            throw(ArgumentError("history length must be at least 1"))
+        end
+        q = bt^k
+        states = zeros(Int, bs*bt*q)
         histories = zeros(Int, q)
-        sources = zeros(Int, 2q)
-        predicates = zeros(Int, 2q)
-        new(k, states, histories, sources, predicates, 0)
+        sources = zeros(Int, bs*q)
+        predicates = zeros(Int, bt*q)
+        new(k, states, histories, sources, predicates, bs, bt, q, 0)
     end
 end
 
@@ -28,23 +37,22 @@ end
 function observe!(dist::TEDist, source::AbstractVector{Int}, target::AbstractVector{Int})
     rng = dist.k:(length(target)-1)
     dist.N = length(rng)
-    history, q = 0, 1
+    history = 0
     @inbounds for i in 1:dist.k
-        q *= 2
-        history = 2history + target[i] - 1;
+        history = dist.bt*history + target[i] - 1;
     end
     @inbounds for i in rng
         future = target[i + 1] - 1
-        src = 2history + source[i] - 1
-        predicate = 2history + future
-        state = 2predicate + source[i] - 1
+        src = dist.bs*history + source[i] - 1
+        predicate = dist.bt*history + future
+        state = dist.bs*predicate + source[i] - 1
 
         dist.states[state + 1] += 1
         dist.histories[history + 1] += 1
         dist.sources[src + 1] += 1
         dist.predicates[predicate + 1] += 1
 
-        history = predicate - q*(target[i - dist.k + 1] - 1)
+        history = predicate - dist.q*(target[i - dist.k + 1] - 1)
     end
     dist
 end
@@ -61,5 +69,11 @@ function transferentropy!(dist::TEDist, source::AbstractVector{Int}, target::Abs
 end
 
 function transferentropy(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
-    transferentropy!(TEDist(k), source, target)
+    smin, smax = extrema(source)
+    tmin, tmax = extrema(target)
+    if smin < 1 || tmin < 1
+        throw(ArgumentError("observations must be positive, nonzero"))
+    end
+    bs, bt = max(2, smax), max(2, tmax)
+    transferentropy!(TEDist(bs, bt, k), source, target)
 end
