@@ -1,4 +1,4 @@
-mutable struct TEDist <: InfoDist
+mutable struct TransferEntropy <: InfoDist
     k::Int
     states::Vector{Int}
     histories::Vector{Int}
@@ -9,7 +9,7 @@ mutable struct TEDist <: InfoDist
     q::Int
     N::Int
 
-    function TEDist(bs::Int, bt::Int, k::Int)
+    function TransferEntropy(bs::Int, bt::Int, k::Int)
         if bs < 2 || bt < 2
             throw(ArgumentError("the support of each random variable must be at least 2"))
         end
@@ -25,7 +25,7 @@ mutable struct TEDist <: InfoDist
     end
 end
 
-function TEDist(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
+function TransferEntropy(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
     if isempty(source) || isempty(target)
         throw(ArgumentError("arguments must not be empty"))
     end
@@ -35,10 +35,10 @@ function TEDist(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int
         throw(ArgumentError("observations must be positive, nonzero"))
     end
     bs, bt = max(2, smax), max(2, tmax)
-    observe!(TEDist(bs, bt, k), source, target)
+    observe!(TransferEntropy(bs, bt, k), source, target)
 end
 
-@inline function clear!(dist::TEDist)
+@inline function clear!(dist::TransferEntropy)
     dist.states[:] .= 0
     dist.histories[:] .= 0
     dist.sources[:] .= 0
@@ -47,7 +47,7 @@ end
     dist
 end
 
-function observe!(dist::TEDist, source::AbstractVector{Int}, target::AbstractVector{Int})
+function observe!(dist::TransferEntropy, source::AbstractVector{Int}, target::AbstractVector{Int})
     if length(source) != length(target)
         throw(ArgumentError("arguments must have the same length"))
     elseif length(target) <= dist.k
@@ -75,17 +75,18 @@ function observe!(dist::TEDist, source::AbstractVector{Int}, target::AbstractVec
     dist
 end
 
-function estimate(dist::TEDist)
+function estimate(dist::TransferEntropy)
     entropy(dist.sources, dist.N) +
     entropy(dist.predicates, dist.N) -
     entropy(dist.states, dist.N) -
     entropy(dist.histories, dist.N)
 end
 
-function transferentropy!(dist::TEDist, source::AbstractVector{Int}, target::AbstractVector{Int})
+function transferentropy!(dist::TransferEntropy, source::AbstractVector{Int},
+                          target::AbstractVector{Int})
     estimate(observe!(dist, source, target))
 end
 
 function transferentropy(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
-    estimate(TEDist(source, target, k))
+    estimate(TransferEntropy(source, target, k))
 end

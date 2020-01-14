@@ -1,11 +1,11 @@
-mutable struct Dist <: InfoDist
+mutable struct Entropy <: InfoDist
     data::Vector{Int}
     b::Int
     N::Int
-    Dist(b) = new(zeros(Int, b), b, 0)
+    Entropy(b) = new(zeros(Int, b), b, 0)
 end
 
-function observe!(dist::Dist, xs::AbstractVector{Int})
+function observe!(dist::Entropy, xs::AbstractVector{Int})
     dist.N += length(xs)
     for i in eachindex(xs)
         dist.data[xs[i]] += 1
@@ -24,11 +24,11 @@ function entropy(xs::AbstractArray{Int}, N::Int)
     h / N
 end
 
-estimate(d::Dist) = entropy(dist.data, dist.N)
+estimate(d::Entropy) = entropy(dist.data, dist.N)
 
-entropy!(d::Dist, xs::AbstractVector{Int}) = estimate(observe!(d, xs))
+entropy!(d::Entropy, xs::AbstractVector{Int}) = estimate(observe!(d, xs))
 
-entropy(xs::AbstractVector{Int}) = entropy!(Dist(maximum(xs)), xs)
+entropy(xs::AbstractVector{Int}) = entropy!(Entropy(maximum(xs)), xs)
 
 Base.length(dist) = dist.b
 

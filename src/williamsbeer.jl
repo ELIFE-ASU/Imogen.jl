@@ -37,7 +37,7 @@ function pid!(h::Hasse{<:AbstractVertex{WilliamsBeer}},
         si[i] = specificinfo(stimulus, responses, ss[i])
     end
 
-    sdist = observe!(Dist(maximum(stimulus)), stimulus)
+    sdist = observe!(Entropy(maximum(stimulus)), stimulus)
 
     for i in eachindex(h)
         α = h[i]

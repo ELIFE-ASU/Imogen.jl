@@ -3,9 +3,10 @@ module Eolas
 using DataFrames
 
 export InfoDist, observe!, clear!, estimate
-export Dist, entropy!, entropy
-export MIDist, mutualinfo!, mutualinfo
-export TEDist, transferentropy!, transferentropy
+export Entropy, entropy!, entropy
+export MutualInfo, mutualinfo!, mutualinfo
+export SpecificInfo, specificinfo!, specificinfo
+export TransferEntropy, transferentropy!, transferentropy
 export AbstractVertex, AbstractUnnamedVertex, AbstractNamedVertex, id, name, payload, above, below
 export UnnamedVertex, Vertex, clone
 export Hasse, top, bottom, vertices, zero!, prune, graphviz

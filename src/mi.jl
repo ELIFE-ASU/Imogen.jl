@@ -1,11 +1,11 @@
-mutable struct MIDist <: InfoDist
+mutable struct MutualInfo <: InfoDist
     joint::Matrix{Int}
     m1::Vector{Int}
     m2::Vector{Int}
     b1::Int
     b2::Int
     N::Int
-    function MIDist(b1::Integer, b2::Integer)
+    function MutualInfo(b1::Integer, b2::Integer)
         if b1 < 2 || b2 < 2
             throw(ArgumentError("the support of each random variable must be at least 2"))
         end
@@ -13,7 +13,7 @@ mutable struct MIDist <: InfoDist
     end
 end
 
-function MIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int})
+function MutualInfo(xs::AbstractVector{Int}, ys::AbstractVector{Int})
     if isempty(xs) || isempty(ys)
         throw(ArgumentError("arguments must not be empty"))
     end
@@ -22,14 +22,14 @@ function MIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int})
     if xmin < 1 || ymin < 1
         throw(ArgumentError("observations must be positive, nonzero"))
     end
-    observe!(MIDist(max(2, xmax), max(2, ymax)), xs, ys)
+    observe!(MutualInfo(max(2, xmax), max(2, ymax)), xs, ys)
 end
 
-function estimate(dist::MIDist)
+function estimate(dist::MutualInfo)
     entropy(dist.m1, dist.N) + entropy(dist.m2, dist.N) - entropy(dist.joint, dist.N)
 end
 
-function observe!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
+function observe!(dist::MutualInfo, xs::AbstractVector{Int}, ys::AbstractVector{Int})
     if length(xs) != length(ys)
         throw(ArgumentError("arguments must have the same length"))
     end
@@ -43,7 +43,7 @@ function observe!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int}
     dist
 end
 
-@inline function clear!(dist::MIDist)
+@inline function clear!(dist::MutualInfo)
     dist.joint[:] .= 0
     dist.m1[:] .= 0
     dist.m2[:] .= 0
@@ -51,8 +51,8 @@ end
     dist
 end
 
-function mutualinfo!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
+function mutualinfo!(dist::MutualInfo, xs::AbstractVector{Int}, ys::AbstractVector{Int})
     estimate(observe!(dist, xs, ys))
 end
 
-mutualinfo(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = estimate(MIDist(xs, ys))
+mutualinfo(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = estimate(MutualInfo(xs, ys))
