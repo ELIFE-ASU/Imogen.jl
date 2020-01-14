@@ -25,27 +25,26 @@ end
     dist
 end
 
-function observe!(dist::TEDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
-    rng = dist.k:(length(ys)-1)
+function observe!(dist::TEDist, source::AbstractVector{Int}, target::AbstractVector{Int})
+    rng = dist.k:(length(target)-1)
     dist.N = length(rng)
     history, q = 0, 1
     @inbounds for i in 1:dist.k
         q *= 2
-        history = 2history + ys[i] - 1;
+        history = 2history + target[i] - 1;
     end
     @inbounds for i in rng
-        src = xs[i] - 1
-        future = ys[i + 1] - 1
-        source = 2history + src
+        future = target[i + 1] - 1
+        src = 2history + source[i] - 1
         predicate = 2history + future
-        state = 2predicate + src
+        state = 2predicate + source[i] - 1
 
         dist.states[state + 1] += 1
         dist.histories[history + 1] += 1
-        dist.sources[source + 1] += 1
+        dist.sources[src + 1] += 1
         dist.predicates[predicate + 1] += 1
 
-        history = predicate - q*(ys[i - dist.k + 1] - 1)
+        history = predicate - q*(target[i - dist.k + 1] - 1)
     end
     dist
 end
@@ -57,10 +56,10 @@ function estimate(dist::TEDist)
     entropy(dist.histories, dist.N)
 end
 
-function transferentropy!(dist::TEDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
-    estimate(observe!(dist, xs, ys))
+function transferentropy!(dist::TEDist, source::AbstractVector{Int}, target::AbstractVector{Int})
+    estimate(observe!(dist, source, target))
 end
 
-function transferentropy(xs::AbstractVector{Int}, ys::AbstractVector{Int}, k::Int)
-    transferentropy!(TEDist(k), xs, ys)
+function transferentropy(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
+    transferentropy!(TEDist(k), source, target)
 end
