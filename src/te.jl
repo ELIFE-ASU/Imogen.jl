@@ -50,22 +50,11 @@ function observe!(dist::TEDist, xs::AbstractVector{Int}, ys::AbstractVector{Int}
     dist
 end
 
-function estimate(xs::AbstractArray{Int}, N::Int)
-    h = N * log2(N)
-    for i in eachindex(xs)
-        n = xs[i]
-        if !iszero(n)
-            h -= n * log2(n)
-        end
-    end
-    h / N
-end
-
 function estimate(dist::TEDist)
-    estimate(dist.sources, dist.N) +
-    estimate(dist.predicates, dist.N) -
-    estimate(dist.states, dist.N) -
-    estimate(dist.histories, dist.N)
+    entropy(dist.sources, dist.N) +
+    entropy(dist.predicates, dist.N) -
+    entropy(dist.states, dist.N) -
+    entropy(dist.histories, dist.N)
 end
 
 function transferentropy!(dist::TEDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
