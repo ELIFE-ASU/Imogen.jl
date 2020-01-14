@@ -50,7 +50,7 @@ function observe!(dist::TEDist, xs::AbstractVector{Int}, ys::AbstractVector{Int}
     dist
 end
 
-function entropy(xs::AbstractArray{Int}, N::Int)
+function estimate(xs::AbstractArray{Int}, N::Int)
     h = N * log2(N)
     for i in eachindex(xs)
         n = xs[i]
@@ -61,15 +61,15 @@ function entropy(xs::AbstractArray{Int}, N::Int)
     h / N
 end
 
-function entropy(dist::TEDist)
-    entropy(dist.sources, dist.N) +
-    entropy(dist.predicates, dist.N) -
-    entropy(dist.states, dist.N) -
-    entropy(dist.histories, dist.N)
+function estimate(dist::TEDist)
+    estimate(dist.sources, dist.N) +
+    estimate(dist.predicates, dist.N) -
+    estimate(dist.states, dist.N) -
+    estimate(dist.histories, dist.N)
 end
 
 function transferentropy!(dist::TEDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
-    entropy(observe!(dist, xs, ys))
+    estimate(observe!(dist, xs, ys))
 end
 
 function transferentropy(xs::AbstractVector{Int}, ys::AbstractVector{Int}, k::Int)

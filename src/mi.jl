@@ -8,7 +8,7 @@ end
 
 MIDist(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = observe!(MIDist(), xs, ys)
 
-function entropy(dist::MIDist)
+function estimate(dist::MIDist)
     mi = 0.0
     for i in 1:2, j in 1:2
         p = dist.joint[i,j]
@@ -39,7 +39,7 @@ end
 end
 
 function mutualinfo!(dist::MIDist, xs::AbstractVector{Int}, ys::AbstractVector{Int})
-    entropy(observe!(dist, xs, ys))
+    estimate(observe!(dist, xs, ys))
 end
 
 mutualinfo(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = mutualinfo!(MIDist(), xs, ys)

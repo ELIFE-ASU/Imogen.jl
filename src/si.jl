@@ -20,7 +20,7 @@ function observe!(dist::SIDist, x1::AbstractVector{Int}, x2::AbstractVector{Int}
     dist
 end
 
-function entropy(dist::SIDist)
+function estimate(dist::SIDist)
     si = zeros(dist.b1)
     N = dist.N
     for x1 in eachindex(dist.m1)
@@ -39,12 +39,12 @@ end
 function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int})
     boxed = box(responses)
     dist = SIDist(maximum(stimulus), maximum(boxed))
-    entropy(observe!(dist, stimulus, boxed))
+    estimate(observe!(dist, stimulus, boxed))
 end
 
 function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractVector{Int})
     dist = SIDist(maximum(stimulus), maximum(responses))
-    entropy(observe!(dist, stimulus, responses))
+    estimate(observe!(dist, stimulus, responses))
 end
 
 function specificinfo(stimulus::AbstractVector{Int}, responses::AbstractMatrix{Int},
