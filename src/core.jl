@@ -6,6 +6,11 @@ abstract type InfoDist end
 observe!(::InfoDist, args...)
 
 """
+    clear!(d)
+"""
+clear!(::InfoDist)
+
+"""
     estimate(d)
 """
 estimate(::InfoDist)

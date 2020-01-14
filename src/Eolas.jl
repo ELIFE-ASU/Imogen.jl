@@ -2,7 +2,7 @@ module Eolas
 
 using DataFrames
 
-export EmpericalDist, observe!, estimate
+export InfoDist, observe!, clear!, estimate
 export Dist, entropy!, entropy
 export MIDist, mutualinfo!, mutualinfo
 export TEDist, transferentropy!, transferentropy
