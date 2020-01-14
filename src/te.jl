@@ -38,10 +38,10 @@ function observe!(dist::TEDist, source::AbstractVector{Int}, target::AbstractVec
     rng = dist.k:(length(target)-1)
     dist.N = length(rng)
     history = 0
-    @inbounds for i in 1:dist.k
+    for i in 1:dist.k
         history = dist.bt*history + target[i] - 1;
     end
-    @inbounds for i in rng
+    for i in rng
         future = target[i + 1] - 1
         src = dist.bs*history + source[i] - 1
         predicate = dist.bt*history + future
