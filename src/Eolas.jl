@@ -10,6 +10,7 @@ export WilliamsBeer, pid, pid!
 include("util.jl")
 include("lattice.jl")
 include("info.jl")
+include("si.jl")
 include("pid.jl")
 include("williamsbeer.jl")
 
