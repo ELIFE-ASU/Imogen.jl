@@ -1,3 +1,3 @@
-# Eolas.jl
+# Imogen.jl
 
-Eolas is a package for computing partial information decompositions from empirical data.
+Imogen is a package for computing partial information decompositions from empirical data.

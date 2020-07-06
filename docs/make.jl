@@ -1,11 +1,11 @@
 using Documenter
-using Eolas
+using Imogen
 
-DocMeta.setdocmeta!(Eolas, :DocTestSetup, :(using Eolas); recursive=true)
+DocMeta.setdocmeta!(Imogen, :DocTestSetup, :(using Imogen); recursive=true)
 makedocs(
-    sitename = "Eolas",
+    sitename = "Imogen",
     format = Documenter.HTML(),
-    modules = [Eolas],
+    modules = [Imogen],
     authors = "Douglas G. Moore",
     pages = Any[
         "Home" => "index.md",
@@ -13,5 +13,5 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/dglmoore/Eolas.jl.git"
+    repo = "github.com/dglmoore/Imogen.jl.git"
 )

@@ -1,6 +1,6 @@
-# Contributing to Eolas.jl
+# Contributing to Imogen.jl
 
-Thanks for taking the time to make Eolas.jl better! :tada: :smile:
+Thanks for taking the time to make Imogen.jl better! :tada: :smile:
 
 > **Note**: These contributing guidelines are adapted from the [Atom Project's Contributing
    Guidelines](https://github.com/atom/atom/blob/master/CONTRIBUTING.md).
@@ -22,7 +22,7 @@ Thanks for taking the time to make Eolas.jl better! :tada: :smile:
 
 ## Code of Conduct
 
-This project, and everyone participating in it, is governed by the [Eolas.jl Code of
+This project, and everyone participating in it, is governed by the [Imogen.jl Code of
 Conduct](CODE_OF_CONDUCT.md).  By participating, you are expected to uphold this code. Please report
 unacceptable behavior to [emergence@asu.edu](mailto:emergence@asu.edu).
 
@@ -30,12 +30,12 @@ unacceptable behavior to [emergence@asu.edu](mailto:emergence@asu.edu).
 
 ### Reporting Bugs
 
-This section guides you through submitting a bug report for Eolas.jl. Following these guidelines
+This section guides you through submitting a bug report for Imogen.jl. Following these guidelines
 helps maintainers and the community understand your report, reproduce the behavior, and find related
 reports.
 
 Before creating bug reports, perform a [cursory
-search](https://github.com/search?utf8=%E2%9C%93&q=+is%3Aissue+repo%3Adglmoore%2FEolas.jl&type=) to
+search](https://github.com/search?utf8=%E2%9C%93&q=+is%3Aissue+repo%3Adglmoore%2FImogen.jl&type=) to
 see if the problem has already been reported. If it has **and the issue is still open**, add a
 comment to the existing issue instead of opening a new one. If you find a **closed** issue that
 seems like it is the same thing that you're experiencing, open a new issue and include a link to the
@@ -59,10 +59,10 @@ Explain the problem and include addition details to help maintainers reproduce t
 
 Provide more context by answering these questions:
 
-  * **Did the problem start happening recently** (e.g. after updating to a new version of Eolas.jl)
+  * **Did the problem start happening recently** (e.g. after updating to a new version of Imogen.jl)
     or was this always a problem?
   * If this problem started recently, **can you reproduce the problem in an older version of
-    Eolas.jl?** What is the most recent version of Eolas.jl which does not have this bug?
+    Imogen.jl?** What is the most recent version of Imogen.jl which does not have this bug?
   * **Can you reliably reproduce the issue?** If not, provide details about how often the problem
     happens and under which conditions it typically occurs.
   * If the problem is related to working with external resources (e.g. data files, network
@@ -71,17 +71,17 @@ Provide more context by answering these questions:
 
 Include details about your configuration
 
-  * **Which version of Eolas.jl are you using?**
+  * **Which version of Imogen.jl are you using?**
   * **What's the name and version of the Operating System you are using?**
 
 ### Suggesting Features
 
-This section guides you through submitting an feature suggestion for Eolas.jl, including completely
+This section guides you through submitting an feature suggestion for Imogen.jl, including completely
 new features and minor improvements to existing functionality. Following these guidelines helps
 maintainers and the community understand your suggestion, find related suggestions, and prioritize
 feature development.
 
-Before creating a feature request, perform a [cursory search](https://github.com/search?utf8=%E2%9C%93&q=+is%3Aissue+repo%3Adglmoore%2FEolas.jl+label%3A%22feature+request%22+&type=) to see if it has
+Before creating a feature request, perform a [cursory search](https://github.com/search?utf8=%E2%9C%93&q=+is%3Aissue+repo%3Adglmoore%2FImogen.jl+label%3A%22feature+request%22+&type=) to see if it has
 already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
 
 #### How do I submit a feature request?
@@ -93,7 +93,7 @@ request is not a duplicate, create an issue and provide the following informatio
   * **Use a clear and descriptive title** for the issue to identify the suggestion.
   * **Provide a description of the feature** in as much detail as possible.
   * **Propose an API for the feature** to demonstrate how that feature fits in with the rest of
-    Eolas.jl.
+    Imogen.jl.
   * **Give and example usage** for the proposed API. Of course, the output is not necessary.
   * **Reference any resources** on which the feature is based. The references should any
     mathematical details necessary for implementing the feature, e.g. defining equations.
@@ -101,33 +101,33 @@ request is not a duplicate, create an issue and provide the following informatio
 ### Your First Code Contribution
 
 Your contributions are more than welcome!  before you get started It's also advisable that you read
-through the [API documentation](dglmoore.github.io/Eolas.jl/dev) to make sure that
-you fully understand how the various components of Eolas.jl interact.
+through the [API documentation](dglmoore.github.io/Imogen.jl/dev) to make sure that
+you fully understand how the various components of Imogen.jl interact.
 
 For external contributions, we use [GitHub forks](https://guides.github.com/activities/forking/) and
 [pull requests](https://guides.github.com/activities/forking/#making-a-pull-request) workflow. To
-get started with contributing code, you first need to fork Eolas.jl to one of your accounts. As you
+get started with contributing code, you first need to fork Imogen.jl to one of your accounts. As you
 begin development, have several recommendations that will make your life easier.
 
  * **Do not work directly on master.** Create a branch for whatever feature or bug you are currently
    working on.
  * **Create a [draft pull
    request](https://github.blog/2019-02-14-introducing-draft-pull-requests/)** after you first push
-   to your fork. This will ensure that the rest of the Eolas.jl community knows that you are working
+   to your fork. This will ensure that the rest of the Imogen.jl community knows that you are working
    on a given feature or bug.
- * **Fetch changes from [dglmoore/Eolas.jl](https://github.com/dglmoore/Eolas.jl)'s master branch
+ * **Fetch changes from [dglmoore/Imogen.jl](https://github.com/dglmoore/Imogen.jl)'s master branch
    often** and merge them into your working branch. This will reduce the number and severity of
    merge conflicts that you will have to deal with. [How do I fetch changes from
-   dglmoore/Eolas.jl?](#how-do-i-fetch-changes-from-dglmooreeolasjl)
+   dglmoore/Imogen.jl?](#how-do-i-fetch-changes-from-dglmooreimogenjl)
 
 ### Pull Requests
 
 The Fork-Pull Request process described here has several goals:
 
-  * Maintain Eolas.jl's quality
-  * Quickly fix problems with Eolas.jl that are important to users
-  * Enage the community in working to make Eolas.jl as near to perfect as possible
-  * Enable a sustainable system for Eolas.jl's maintainers to review contributions
+  * Maintain Imogen.jl's quality
+  * Quickly fix problems with Imogen.jl that are important to users
+  * Enage the community in working to make Imogen.jl as near to perfect as possible
+  * Enable a sustainable system for Imogen.jl's maintainers to review contributions
 
 Please follow these steps to have your contribution considered by the maintainers:
 
@@ -174,14 +174,14 @@ Please follow these steps to have your contribution considered by the maintainer
 
 ## Additional Notes
 
-### How do I fetch changes from dglmoore/Eolas.jl?
+### How do I fetch changes from dglmoore/Imogen.jl?
 
-After you have cloned your fork, add the [dglmoore/Eolas.jl](https://github.com/dglmoore/Eolas.jl) as
+After you have cloned your fork, add the [dglmoore/Imogen.jl](https://github.com/dglmoore/Imogen.jl) as
 a remote:
 ```shell
-$ git add remote dglmoore https://github.com/dglmoore/Eolas.jl.git
+$ git add remote dglmoore https://github.com/dglmoore/Imogen.jl.git
 ```
-To fetch changes from dglmoore/Eolas.jl's master branch:
+To fetch changes from dglmoore/Imogen.jl's master branch:
 ```shell
 $ git fetch dglmoore master
 ```

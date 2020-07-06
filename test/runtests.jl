@@ -1,6 +1,6 @@
-using Eolas, Test
+using Imogen, Test
 
-import Eolas: genvertices, toposort!, isbelow
+import Imogen: genvertices, toposort!, isbelow
 
 near(a::Float64, b::Float64; ϵ=1e-10) = abs(a - b) < ϵ
 

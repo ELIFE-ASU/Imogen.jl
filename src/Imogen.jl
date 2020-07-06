@@ -1,4 +1,4 @@
-module Eolas
+module Imogen
 
 using DataFrames
 
