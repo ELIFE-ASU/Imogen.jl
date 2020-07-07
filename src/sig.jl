@@ -1,4 +1,4 @@
-using Random
+using Distributed, Random
 
 mutable struct Sig{T <: Real}
     value::T
@@ -32,8 +32,8 @@ macro sig(func, args...)
 
         local count = 1
         local gt = func(front..., permarg, back...)
-        @views for _ in 1:nperm
-            count += (gt ≤ func(front..., permarg[randperm(rng, N)], back...))
+        count += @distributed (+) for _ in 1:nperm
+            Int(gt ≤ func(front..., permarg[randperm(rng, N)], back...))
         end
         local p = count / (nperm + 1)
         local se = sqrt((p * (1 - p)) / (nperm + 1))
