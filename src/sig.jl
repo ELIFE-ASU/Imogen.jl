@@ -6,23 +6,6 @@ mutable struct Sig{T <: Real}
     se::T
 end
 
-function sig(func::Function, args...; nperm=1000, parg=1, kwargs...)
-    sig(Random.GLOBAL_RNG, func, args...; nperm=nperm, parg=parg, kwargs...)
-end
-
-function sig(rng::AbstractRNG, func::Function, args...; nperm=1000, parg=1, kwargs...)
-    front, permarg, back = args[1:parg-1], args[parg], args[parg+1:end]
-    N = length(permarg)
-    count = 1
-    gt = func(front..., permarg, back...; kwargs...)
-    @views for _ in 1:nperm
-        count += (gt ≤ func(front..., permarg[randperm(rng, N)], back...; kwargs...))
-    end
-    p = count / (nperm + 1)
-    se = sqrt((p * (1 - p)) / (nperm + 1))
-    Sig(gt, p, se)
-end
-
 macro sig(func, args...)
     if !isexpr(func, :call)
         error("first expression must be a function call")
