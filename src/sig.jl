@@ -14,7 +14,7 @@ function sig(rng::AbstractRNG, func::Function, args...; nperm=1000, parg=1, kwar
     front, permarg, back = args[1:parg-1], args[parg], args[parg+1:end]
     N = length(permarg)
     count = 1
-    gt = func(front..., permarg, back...)
+    gt = func(front..., permarg, back...; kwargs...)
     @views for _ in 1:nperm
         count += (gt ≤ func(front..., permarg[randperm(rng, N)], back...; kwargs...))
     end
@@ -23,10 +23,37 @@ function sig(rng::AbstractRNG, func::Function, args...; nperm=1000, parg=1, kwar
     Sig(gt, p, se)
 end
 
-macro sig(e::Expr)
-    :(sig($(esc.(e.args)...)))
-end
+macro sig(func, args...)
+    if !isexpr(func, :call)
+        error("first expression must be a function call")
+    end
 
-macro sig(nperm, e::Expr)
-    :(sig($(esc.(e.args)...); nperm=$(esc(nperm))))
+    kwargs = Dict{Any,Any}(:nperm => 1000, :parg => 1, :rng => Random.GLOBAL_RNG)
+    foreach(args) do arg
+        if isexpr(arg, :(=))
+            kwargs[arg.args[1]] = arg.args[2]
+        else
+            error("each argument after the first must be a keyword argument")
+        end
+    end
+
+    quote
+        local nperm = $(esc(kwargs[:nperm]))
+        local parg = $(esc(kwargs[:parg]))
+        local rng = $(esc(kwargs[:rng]))
+        local func = $(esc(func.args[1]))
+        local args = [$(esc.(func.args[2:end])...)]
+
+        local front, permarg, back = args[1:parg-1], args[parg], args[parg+1:end]
+        local N = length(permarg)
+
+        local count = 1
+        local gt = func(front..., permarg, back...)
+        @views for _ in 1:nperm
+            count += (gt ≤ func(front..., permarg[randperm(rng, N)], back...))
+        end
+        local p = count / (nperm + 1)
+        local se = sqrt((p * (1 - p)) / (nperm + 1))
+        Sig(gt, p, se)
+    end
 end
