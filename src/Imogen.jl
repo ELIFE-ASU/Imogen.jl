@@ -11,6 +11,7 @@ export AbstractVertex, AbstractUnnamedVertex, AbstractNamedVertex, id, name, pay
 export UnnamedVertex, Vertex, clone
 export Hasse, top, bottom, vertices, zero!, prune, graphviz
 export WilliamsBeer, pid, pid!
+export Sig, sig, @sig
 
 include("core.jl")
 
@@ -27,5 +28,7 @@ include("te.jl")
 include("lattice.jl")
 include("pid.jl")
 include("williamsbeer.jl")
+
+include("sig.jl")
 
 end
