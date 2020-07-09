@@ -5,6 +5,7 @@ using DataFrames
 export InfoDist, observe!, clear!, estimate
 export Entropy, entropy!, entropy
 export MutualInfo, mutualinfo!, mutualinfo
+export ActiveInfo, activeinfo!, activeinfo
 export SpecificInfo, specificinfo!, specificinfo
 export TransferEntropy, transferentropy!, transferentropy
 export AbstractVertex, AbstractUnnamedVertex, AbstractNamedVertex, id, name, payload, above, below
@@ -20,6 +21,8 @@ include("util.jl")
 include("entropy.jl")
 
 include("mi.jl")
+
+include("ai.jl")
 
 include("si.jl")
 
