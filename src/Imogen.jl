@@ -13,6 +13,7 @@ export UnnamedVertex, Vertex, clone
 export Hasse, top, bottom, vertices, zero!, prune, graphviz
 export WilliamsBeer, pid, pid!
 export Sig, @sig
+export histories, box, encodehistories
 
 include("core.jl")
 
