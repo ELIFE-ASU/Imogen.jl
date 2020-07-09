@@ -17,11 +17,12 @@ function subsets(n::Int)
 end
 
 function box(series::AbstractMatrix{Int})
-    b = max(2, maximum(series))
+	smin, smax = extrema(series)
+    b = max(2, smin - smax + 1)
     boxed = zeros(Int, size(series, 2))
     for j in 1:size(series, 2)
         for i in 1:size(series, 1)
-            boxed[j] = b*boxed[j] + series[i, j] - 1
+            boxed[j] = b*boxed[j] + series[i, j] - smin
         end
         boxed[j] += 1
     end
@@ -35,7 +36,7 @@ function histories(series::AbstractVector{Int}, k::Int; warn=true)
 
     if warn
         smin, smax = extrema(series)
-        b = smax - smin + 1
+        b = max(2, smax - smin + 1)
         if b^k > length(series) - k + 1
             @warn "With only $(length(series)) observations, it is impossible to observe all $b^$k possible histories; consider reducing k or increasing the number of histories"
         end
@@ -69,7 +70,7 @@ function encodehistories(series::AbstractVector{Int}, k::Int; warn=true, recode=
     end
 
     smin, smax = extrema(series)
-    b = smax - smin + 1
+    b = max(2, smax - smin + 1)
     if warn
         if b^k > length(series) - k + 1
             @warn "With only $(length(series)) observations, it is impossible to observe all $b^$k possible histories; consider reducing k or increasing the number of histories"
