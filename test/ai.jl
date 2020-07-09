@@ -101,4 +101,22 @@
     let as = [3,3,3,3,3,3,2,2,2]
         @test activeinfo(as, 2) ≈ 0.469566 atol=1e-6
     end
+
+    @testset "AI is a Mutual Information" for k in 1:9
+        let xs = rand(1:2, 1000)
+            ai = activeinfo(xs, k)
+            @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false)[1:end-1], xs[1+k:end]) atol=1e-6
+            @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false, recode=true)[1:end-1], xs[1+k:end]) atol=1e-6
+        end
+        let xs = rand(1:3, 1000)
+            ai = activeinfo(xs, k)
+            @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false)[1:end-1], xs[1+k:end]) atol=1e-6
+            @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false, recode=true)[1:end-1], xs[1+k:end]) atol=1e-6
+        end
+        let xs = rand(1:4, 1000)
+            ai = activeinfo(xs, k)
+            @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false)[1:end-1], xs[1+k:end]) atol=1e-6
+            @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false, recode=true)[1:end-1], xs[1+k:end]) atol=1e-6
+        end
+    end
 end
