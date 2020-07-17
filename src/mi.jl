@@ -56,3 +56,33 @@ function mutualinfo!(dist::MutualInfo, xs::AbstractVector{Int}, ys::AbstractVect
 end
 
 mutualinfo(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = estimate(MutualInfo(xs, ys))
+
+function mutualinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64};
+                    nn::Int=1, metric::Metric=Chebyshev())
+    data = [xs; ys]
+    joint = BallTree(data, metric)
+    m1 = BallTree(xs, metric)
+    m2 = BallTree(ys, metric)
+    mi = zero(Float64)
+    N = size(data, 2)
+
+    δs = last.(last(knn(joint, data, nn + 1, true))) .- eps(Float64)
+    @inbounds for i in 1:N
+        nx = length(inrange(m1, xs[:, i], δs[i]))
+        ny = length(inrange(m2, ys[:, i], δs[i]))
+        mi += digamma(nx) + digamma(ny)
+    end
+    digamma(nn) - (mi/N) + digamma(N)
+end
+
+function mutualinfo(::Type{Kraskov}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}; kwargs...)
+    mutualinfo(Kraskov1, xs, ys; kwargs...)
+end
+
+function mutualinfo(xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}; kwargs...)
+    mutualinfo(Kraskov1, xs, ys; kwargs...)
+end
+
+function mutualinfo(xs::AbstractVector{Float64}, ys::AbstractVector{Float64}; kwargs...)
+    mutualinfo(reshape(xs, 1, length(xs)), reshape(ys, 1, length(ys)); kwargs...)
+end
