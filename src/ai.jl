@@ -64,3 +64,22 @@ function activeinfo!(dist::ActiveInfo, xs::AbstractVector{Int})
 end
 
 activeinfo(xs::AbstractVector{Int}, k::Int) = estimate(ActiveInfo(xs, k))
+
+function activeinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, k::Int;
+                    τ::Int=1, nn::Int=1, metric::Metric=Chebyshev())
+    hs = history(xs, k, τ, 1)
+    fs = xs[:, end-size(hs, 2)+1:end]
+    mutualinfo(fs, hs; nn=nn, metric=metric)
+end
+
+function activeinfo(::Type{Kraskov}, xs::AbstractMatrix{Float64}, k::Int; kwargs...)
+    activeinfo(Kraskov1, xs, k; kwargs...)
+end
+
+function activeinfo(xs::AbstractMatrix{Float64}, k::Int; kwargs...)
+    activeinfo(Kraskov1, xs, k; kwargs...)
+end
+
+function activeinfo(xs::AbstractVector{Float64}, k::Int; kwargs...)
+    activeinfo(reshape(xs, 1, length(xs)), k; kwargs...)
+end
