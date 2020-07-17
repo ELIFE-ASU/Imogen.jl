@@ -16,6 +16,7 @@ export Sig, @sig
 export histories, box, encodehistories
 
 include("core.jl")
+include("methods.jl")
 
 include("util.jl")
 
