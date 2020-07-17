@@ -30,6 +30,6 @@ entropy!(d::Entropy, xs::AbstractVector{Int}) = estimate(observe!(d, xs))
 
 entropy(xs::AbstractVector{Int}) = entropy!(Entropy(maximum(xs)), xs)
 
-Base.length(dist) = dist.b
+Base.length(dist::Entropy) = dist.b
 
-Base.getindex(dist, idx...) = getindex(dist.data, idx...)
+Base.getindex(dist::Entropy, idx...) = getindex(dist.data, idx...)
