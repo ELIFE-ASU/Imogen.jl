@@ -90,3 +90,45 @@ end
 function transferentropy(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
     estimate(TransferEntropy(source, target, k))
 end
+
+function transferentropy(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}, k::Int;
+                         τ::Int=1, delay::Int=1, nn::Int=1, metric::Metric=Chebyshev())
+    hs = history(ys, k, τ, delay)
+
+    start = size(ys, 2) - size(hs, 2) + 1
+    fs = @view ys[:, start:end]
+    ss = @view xs[:, start-delay:end-delay]
+
+    data = [fs; ss; hs]
+    predicates = [fs; hs]
+    sources = [ss; hs]
+
+    joint = BallTree(data, metric)
+    ms = BallTree(sources, metric)
+    mp = BallTree(predicates, metric)
+    mh = BallTree(hs, metric)
+
+    N = size(data, 2)
+
+    te = zero(Float64)
+    δs = last.(last(knn(joint, data, nn + 1, true))) .- eps(Float64)
+    @inbounds for i in 1:N
+        ns = length(inrange(ms, sources[:, i], δs[i]))
+        np = length(inrange(mp, predicates[:, i], δs[i]))
+        nh = length(inrange(mh, hs[:, i], δs[i]))
+        te += digamma(nh) - digamma(ns) - digamma(np)
+    end
+    digamma(nn) + (te/N)
+end
+
+function transferentropy(::Type{Kraskov}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}, k::Int; kwargs...)
+    transferentropy(Kraskov1, xs, ys, k; kwargs...)
+end
+
+function transferentropy(xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}, k::Int; kwargs...)
+    transferentropy(Kraskov1, xs, ys, k; kwargs...)
+end
+
+function transferentropy(xs::AbstractVector{Float64}, ys::AbstractVector{Float64}, k::Int; kwargs...)
+    transferentropy(reshape(xs, 1, length(xs)), reshape(ys, 1, length(ys)), k; kwargs...)
+end

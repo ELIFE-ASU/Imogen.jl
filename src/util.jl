@@ -49,6 +49,18 @@ function histories(series::AbstractVector{Int}, k::Int; warn=true)
     hs
 end
 
+function history(ys::AbstractMatrix{T}, k::Int, τ::Int=1, delay::Int=1) where T
+	start = 1 + max((k-1)*τ+1, delay)
+    N, M = size(ys)
+    hs = Array{T}(undef, N*k, M - start + 1)
+    for i in start:M
+        for j in 1:k
+            hs[N*(j-1) .+ (1:N), i - start + 1] = ys[:, i - (k-1)*τ - 1 + τ*(j-1)]
+        end
+    end
+    hs
+end
+
 function recode!(dst::AbstractVector{Int}, src::AbstractVector{Int}=dst)
     map = Dict{Int,Int}()
     k = 0
