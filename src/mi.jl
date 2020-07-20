@@ -66,7 +66,7 @@ function mutualinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractM
     mi = zero(Float64)
     N = size(data, 2)
 
-    δs = last.(last(knn(joint, data, nn + 1, true))) .- eps(Float64)
+    δs = prevfloat.(last.(last(knn(joint, data, nn + 1, true))))
     @inbounds for i in 1:N
         nx = length(inrange(m1, xs[:, i], δs[i]))
         ny = length(inrange(m2, ys[:, i], δs[i]))

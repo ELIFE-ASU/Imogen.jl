@@ -111,7 +111,7 @@ function transferentropy(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::Abst
     N = size(data, 2)
 
     te = zero(Float64)
-    δs = last.(last(knn(joint, data, nn + 1, true))) .- eps(Float64)
+    δs = prevfloat.(last.(last(knn(joint, data, nn + 1, true))))
     @inbounds for i in 1:N
         ns = length(inrange(ms, sources[:, i], δs[i]))
         np = length(inrange(mp, predicates[:, i], δs[i]))
