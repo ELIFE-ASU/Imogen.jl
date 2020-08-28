@@ -75,14 +75,44 @@ function mutualinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractM
     digamma(nn) - (mi/N) + digamma(N)
 end
 
-function mutualinfo(::Type{Kraskov}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}; kwargs...)
-    mutualinfo(Kraskov1, xs, ys; kwargs...)
+function mutualinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64},
+                    cond::AbstractMatrix{Float64}, conds::AbstractMatrix{Float64}...;
+                    nn::Int=1, metric::Metric=Chebyshev())
+    data = [xs; ys; cond; conds...]
+    var1 = [xs; cond; conds...]
+    var2 = [ys; cond; conds...]
+    varcond = [cond; conds...]
+
+    joint = BallTree(data, metric)
+    m1 = BallTree(var1, metric)
+    m2 = BallTree(var2, metric)
+    mcond = BallTree(varcond, metric)
+
+    mi = zero(Float64)
+    N = size(data, 2)
+
+    δs = prevfloat.(last.(last(knn(joint, data, nn + 1, true))))
+    @inbounds for i in 1:N
+        n1 = length(inrange(m1, var1[:, i], δs[i]))
+        n2 = length(inrange(m2, var2[:, i], δs[i]))
+        ncond = length(inrange(mcond, varcond[:, i], δs[i]))
+        mi += digamma(ncond) - digamma(n1) - digamma(n2)
+    end
+    digamma(nn) + (mi/N)
 end
 
-function mutualinfo(xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}; kwargs...)
-    mutualinfo(Kraskov1, xs, ys; kwargs...)
+function mutualinfo(::Type{Kraskov}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64},
+                    cond::AbstractMatrix{Float64}...; kwargs...)
+    mutualinfo(Kraskov1, xs, ys, cond...; kwargs...)
 end
 
-function mutualinfo(xs::AbstractVector{Float64}, ys::AbstractVector{Float64}; kwargs...)
-    mutualinfo(reshape(xs, 1, length(xs)), reshape(ys, 1, length(ys)); kwargs...)
+function mutualinfo(xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64},
+                    cond::AbstractMatrix{Float64}...; kwargs...)
+    mutualinfo(Kraskov1, xs, ys, cond...; kwargs...)
+end
+
+function mutualinfo(xs::AbstractVector{Float64}, ys::AbstractVector{Float64},
+                    cond::AbstractVector{Float64}...; kwargs...)
+    conds = map(c -> reshape(c, 1, length(c)), cond)
+    mutualinfo(reshape(xs, 1, length(xs)), reshape(ys, 1, length(ys)), conds...; kwargs...)
 end
