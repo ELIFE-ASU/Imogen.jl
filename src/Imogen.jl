@@ -1,5 +1,9 @@
 module Imogen
 
+if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@optlevel"))
+    @eval Base.Experimental.@optlevel 3
+end
+
 using DataFrames, Distances, NearestNeighbors, SpecialFunctions, Statistics
 
 export InfoDist, observe!, clear!, estimate
