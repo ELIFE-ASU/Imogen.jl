@@ -68,18 +68,30 @@ activeinfo(xs::AbstractVector{Int}; kwargs...) = estimate(ActiveInfo(xs; kwargs.
 function activeinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64};
                     k::Int=1, τ::Int=1, nn::Int=1, metric::Metric=Chebyshev())
     hs = history(xs, k, τ, 1)
-    fs = xs[:, end-size(hs, 2)+1:end]
-    mutualinfo(fs, hs; nn=nn, metric=metric)
+    fs = @view xs[:, end-size(hs, 2)+1:end]
+    mutualinfo(Kraskov1, fs, hs; nn=nn, metric=metric)
 end
 
-function activeinfo(::Type{Kraskov}, xs::AbstractMatrix{Float64}; kwargs...)
-    activeinfo(Kraskov1, xs; kwargs...)
+function activeinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64},
+                    cond::AbstractMatrix{Float64}, conds::AbstractMatrix{Float64}...;
+                    k::Int=1, τ::Int=1, nn::Int=1, metric::Metric=Chebyshev())
+    hs = history(xs, k, τ, 1)
+    N = size(hs, 2)
+    fs = @view xs[:, end-N+1:end]
+    condview = @view cond[:, end-N:end-1]
+    condviews = [@view c[:, end-N:end-1] for c in conds]
+    mutualinfo(Kraskov1, fs, hs, condview, condviews...; nn=nn, metric=metric)
 end
 
-function activeinfo(xs::AbstractMatrix{Float64}; kwargs...)
-    activeinfo(Kraskov1, xs; kwargs...)
+function activeinfo(::Type{Kraskov}, xs::AbstractMatrix{Float64}, conds::AbstractMatrix{Float64}...; kwargs...)
+    activeinfo(Kraskov1, xs, conds...; kwargs...)
 end
 
-function activeinfo(xs::AbstractVector{Float64}; kwargs...)
-    activeinfo(reshape(xs, 1, length(xs)); kwargs...)
+function activeinfo(xs::AbstractMatrix{Float64}, conds::AbstractMatrix{Float64}...; kwargs...)
+    activeinfo(Kraskov1, xs, conds...; kwargs...)
+end
+
+function activeinfo(xs::AbstractVector{Float64}, cond::AbstractVector{Float64}...; kwargs...)
+    conds = map(c -> reshape(c, 1, length(c)), cond)
+    activeinfo(reshape(xs, 1, length(xs)), conds...; kwargs...)
 end
