@@ -33,3 +33,32 @@ entropy(xs::AbstractVector{Int}) = entropy!(Entropy(maximum(xs)), xs)
 Base.length(dist::Entropy) = dist.b
 
 Base.getindex(dist::Entropy, idx...) = getindex(dist.data, idx...)
+
+function entropy(::Type{Kozachenko}, xs::AbstractMatrix{Float64}; metric::Metric=Euclidean())
+    D, T = size(xs)
+    δ = minimumdistances(xs; metric=metric)
+    D*(mean(log.(δ)) + log(2.0)) + sdterm(D) + eulermascheroni(T)
+    D * (mean(log.(δ)) + log(2.0)) + sdterm(D) + eulermascheroni(T)
+end
+
+eulermascheroni(x) = (x < zero(x)) ? zero(Float64) : digamma(x) - digamma(1)
+
+function sdterm(dim::Int)
+    c = (π / 4.0)^(dim / 2)
+    if iseven(dim)
+        log(c) - sum(log.(2:(dim ÷ 2)))
+    else
+        c = (c * 2.0^((dim + 1) / 2.)) / sqrt(π)
+        log(c) - sum(log.(3:2:dim))
+    end
+end
+
+function minimumdistances(xs; metric::Metric=Euclidean())
+    b = BallTree(xs)
+    _, δ = knn(b, xs, 2)
+    first.(δ)
+end
+
+entropy(xs::AbstractMatrix{Float64}; kwargs...) = entropy(Kozachenko, xs; kwargs...)
+
+entropy(xs::AbstractVector{Float64}; kwargs...) = entropy(reshape(xs, 1, length(xs)))

@@ -1,6 +1,6 @@
 module Imogen
 
-using DataFrames, Distances, NearestNeighbors, SpecialFunctions
+using DataFrames, Distances, NearestNeighbors, SpecialFunctions, Statistics
 
 export InfoDist, observe!, clear!, estimate
 export Entropy, entropy!, entropy
