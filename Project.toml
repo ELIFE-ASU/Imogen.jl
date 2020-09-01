@@ -4,7 +4,6 @@ authors = ["Douglas G. Moore <doug@dglmoore.com>"]
 version = "0.3.0"
 
 [deps]
-BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 NearestNeighbors = "b8a86587-4115-5ab1-83bc-aa920d37bbce"
