@@ -99,36 +99,35 @@ function transferentropy(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::Abst
     fs = @view ys[:, start:end]
     ss = @view xs[:, start-delay:end-delay]
 
-    data = [fs; ss; hs]
-    predicates = [fs; hs]
-    sources = [ss; hs]
-
-    joint = BallTree(data, metric)
-    ms = BallTree(sources, metric)
-    mp = BallTree(predicates, metric)
-    mh = BallTree(hs, metric)
-
-    N = size(data, 2)
-
-    te = zero(Float64)
-    δs = prevfloat.(last.(last(knn(joint, data, nn + 1, true))))
-    @inbounds for i in 1:N
-        ns = length(inrange(ms, sources[:, i], δs[i]))
-        np = length(inrange(mp, predicates[:, i], δs[i]))
-        nh = length(inrange(mh, hs[:, i], δs[i]))
-        te += digamma(nh) - digamma(ns) - digamma(np)
-    end
-    digamma(nn) + (te/N)
+    mutualinfo(Kraskov1, fs, ss, hs; nn=nn, metric=metric)
 end
 
-function transferentropy(::Type{Kraskov}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}; kwargs...)
-    transferentropy(Kraskov1, xs, ys; kwargs...)
+function transferentropy(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64},
+                         cond::AbstractMatrix{Float64}, conds::AbstractMatrix{Float64}...;
+                         k::Int=1, τ::Int=1, delay::Int=1, nn::Int=1, metric::Metric=Chebyshev())
+    hs = history(ys, k, τ, delay)
+
+    start = size(ys, 2) - size(hs, 2) + 1
+    fs = @view ys[:, start:end]
+    ss = @view xs[:, start-delay:end-delay]
+    condview = @view cond[:, start-delay:end-delay]
+    condviews = [@view c[:, start-delay:end-delay] for c in conds]
+
+    mutualinfo(Kraskov1, fs, ss, hs, condview, condviews...; nn=nn, metric=metric)
 end
 
-function transferentropy(xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}; kwargs...)
-    transferentropy(Kraskov1, xs, ys; kwargs...)
+function transferentropy(::Type{Kraskov}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64},
+                         cond::AbstractMatrix{Float64}...; kwargs...)
+    transferentropy(Kraskov1, xs, ys, cond...; kwargs...)
 end
 
-function transferentropy(xs::AbstractVector{Float64}, ys::AbstractVector{Float64}; kwargs...)
-    transferentropy(reshape(xs, 1, length(xs)), reshape(ys, 1, length(ys)); kwargs...)
+function transferentropy(xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64},
+                         cond::AbstractMatrix{Float64}...; kwargs...)
+    transferentropy(Kraskov1, xs, ys, cond...; kwargs...)
+end
+
+function transferentropy(xs::AbstractVector{Float64}, ys::AbstractVector{Float64},
+                         cond::AbstractVector{Float64}...; kwargs...)
+    conds = map(c -> reshape(c, 1, length(c)), cond)
+    transferentropy(reshape(xs, 1, length(xs)), reshape(ys, 1, length(ys)), conds...; kwargs...)
 end
