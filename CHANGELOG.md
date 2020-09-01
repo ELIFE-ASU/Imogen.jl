@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Performance improvements
+
 ## [v0.3.0]
 
 * Conditional transfer entropy
