@@ -67,7 +67,7 @@ function mutualinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractM
     N = size(data, 2)
 
     δs = prevfloat.(last.(last(knn(joint, data, nn + 1, true))))
-    @inbounds for i in 1:N
+    for i in 1:N
         nx = length(inrange(m1, xs[:, i], δs[i]))
         ny = length(inrange(m2, ys[:, i], δs[i]))
         mi += digamma(nx) + digamma(ny)
@@ -92,7 +92,7 @@ function mutualinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractM
     N = size(data, 2)
 
     δs = prevfloat.(last.(last(knn(joint, data, nn + 1, true))))
-    @inbounds for i in 1:N
+    for i in 1:N
         n1 = length(inrange(m1, var1[:, i], δs[i]))
         n2 = length(inrange(m2, var2[:, i], δs[i]))
         ncond = length(inrange(mcond, varcond[:, i], δs[i]))
