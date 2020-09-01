@@ -25,7 +25,7 @@ mutable struct TransferEntropy <: InfoDist
     end
 end
 
-function TransferEntropy(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
+function TransferEntropy(source::AbstractVector{Int}, target::AbstractVector{Int}; k::Int=1)
     if isempty(source) || isempty(target)
         throw(ArgumentError("arguments must not be empty"))
     end
@@ -87,12 +87,12 @@ function transferentropy!(dist::TransferEntropy, source::AbstractVector{Int},
     estimate(observe!(dist, source, target))
 end
 
-function transferentropy(source::AbstractVector{Int}, target::AbstractVector{Int}, k::Int)
-    estimate(TransferEntropy(source, target, k))
+function transferentropy(source::AbstractVector{Int}, target::AbstractVector{Int}; kwargs...)
+    estimate(TransferEntropy(source, target; kwargs...))
 end
 
-function transferentropy(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}, k::Int;
-                         τ::Int=1, delay::Int=1, nn::Int=1, metric::Metric=Chebyshev())
+function transferentropy(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64};
+                         k::Int=1, τ::Int=1, delay::Int=1, nn::Int=1, metric::Metric=Chebyshev())
     hs = history(ys, k, τ, delay)
 
     start = size(ys, 2) - size(hs, 2) + 1
@@ -121,14 +121,14 @@ function transferentropy(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::Abst
     digamma(nn) + (te/N)
 end
 
-function transferentropy(::Type{Kraskov}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}, k::Int; kwargs...)
-    transferentropy(Kraskov1, xs, ys, k; kwargs...)
+function transferentropy(::Type{Kraskov}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}; kwargs...)
+    transferentropy(Kraskov1, xs, ys; kwargs...)
 end
 
-function transferentropy(xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}, k::Int; kwargs...)
-    transferentropy(Kraskov1, xs, ys, k; kwargs...)
+function transferentropy(xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64}; kwargs...)
+    transferentropy(Kraskov1, xs, ys; kwargs...)
 end
 
-function transferentropy(xs::AbstractVector{Float64}, ys::AbstractVector{Float64}, k::Int; kwargs...)
-    transferentropy(reshape(xs, 1, length(xs)), reshape(ys, 1, length(ys)), k; kwargs...)
+function transferentropy(xs::AbstractVector{Float64}, ys::AbstractVector{Float64}; kwargs...)
+    transferentropy(reshape(xs, 1, length(xs)), reshape(ys, 1, length(ys)); kwargs...)
 end

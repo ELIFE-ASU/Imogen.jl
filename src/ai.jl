@@ -15,7 +15,7 @@ mutable struct ActiveInfo <: InfoDist
     end
 end
 
-function ActiveInfo(xs::AbstractVector{Int}, k::Int)
+function ActiveInfo(xs::AbstractVector{Int}; k::Int=1)
     if k < 1
         throw(ArgumentError("history length must be at least 1"))
     elseif length(xs) ≤ k
@@ -63,23 +63,23 @@ function activeinfo!(dist::ActiveInfo, xs::AbstractVector{Int})
     estimate(observe!(dist, xs))
 end
 
-activeinfo(xs::AbstractVector{Int}, k::Int) = estimate(ActiveInfo(xs, k))
+activeinfo(xs::AbstractVector{Int}; kwargs...) = estimate(ActiveInfo(xs; kwargs...))
 
-function activeinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, k::Int;
-                    τ::Int=1, nn::Int=1, metric::Metric=Chebyshev())
+function activeinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64};
+                    k::Int=1, τ::Int=1, nn::Int=1, metric::Metric=Chebyshev())
     hs = history(xs, k, τ, 1)
     fs = xs[:, end-size(hs, 2)+1:end]
     mutualinfo(fs, hs; nn=nn, metric=metric)
 end
 
-function activeinfo(::Type{Kraskov}, xs::AbstractMatrix{Float64}, k::Int; kwargs...)
-    activeinfo(Kraskov1, xs, k; kwargs...)
+function activeinfo(::Type{Kraskov}, xs::AbstractMatrix{Float64}; kwargs...)
+    activeinfo(Kraskov1, xs; kwargs...)
 end
 
-function activeinfo(xs::AbstractMatrix{Float64}, k::Int; kwargs...)
-    activeinfo(Kraskov1, xs, k; kwargs...)
+function activeinfo(xs::AbstractMatrix{Float64}; kwargs...)
+    activeinfo(Kraskov1, xs; kwargs...)
 end
 
-function activeinfo(xs::AbstractVector{Float64}, k::Int; kwargs...)
-    activeinfo(reshape(xs, 1, length(xs)), k; kwargs...)
+function activeinfo(xs::AbstractVector{Float64}; kwargs...)
+    activeinfo(reshape(xs, 1, length(xs)); kwargs...)
 end
