@@ -6,3 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.0]
+
+* Conditional transfer entropy
+* Conditional active information
+* History lengths are now keyword arguments
