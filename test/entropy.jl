@@ -14,7 +14,7 @@
     end
 
     let dist = Entropy(2, 3)
-        @test dist.data == zeros(Int, 2, 3)
+        @test dist.data == zeros(Int, 6)
         @test dist.bs == (2, 3)
         @test dist.N == 0
     end
@@ -35,7 +35,7 @@
 
     let dist = Entropy(2, 2)
         observe!(dist, [2 1 2 1; 1 1 2 2])
-        @test dist.data == [1 1; 1 1]
+        @test dist.data == [1,1,1,1]
         @test dist.bs == (2, 2)
         @test dist.N == 4
     end
@@ -48,7 +48,7 @@
 
         observe!(dist, data)
 
-        @test dist.data == [1 8 0; 0 1 2]
+        @test dist.data == [1,0,8,1,0,2]
         @test dist.bs == (2, 3)
         @test dist.N == 12
     end
@@ -56,7 +56,7 @@
     let dist = Entropy(2, 3)
         observe!(dist, [1 1 1 1; 2 2 2 2])
         observe!(dist, [1 2 2 2; 1 3 3 2])
-        @test dist.data == [1 4 0; 0 1 2]
+        @test dist.data == [1,0,4,1,0,2]
         @test dist.bs == (2, 3)
         @test dist.N == 8
     end
@@ -68,13 +68,13 @@
     @test_throws ArgumentError Entropy([2 1 1; 0 1 2])
 
     let dist = Entropy([1 1 1 1 1 2 2 2; 2 2 2 2 1 1 2 2])
-        @test dist.data == [1 4; 1 2]
+        @test dist.data == [1,1,4,2]
         @test dist.bs == (2, 2)
         @test dist.N == 8
     end
 
     let dist = Entropy([1 1 1 1 1 1 1 1; 2 2 2 2 1 1 2 2])
-        @test dist.data == [2 6]
+        @test dist.data == [2,6]
         @test dist.bs == (1,2)
         @test dist.N == 8
     end
@@ -86,7 +86,7 @@
 
         dist = Entropy(data)
 
-        @test dist.data == [4 6 1; 0 1 1; 0 2 0]
+        @test dist.data == [4,0,0,6,1,2,1,1,0]
         @test dist.bs == (3, 3)
         @test dist.N == 15
     end
@@ -104,7 +104,7 @@
 
     let dist = observe!(Entropy(2, 2), [1 1 2 2; 1 2 1 2])
         clear!(dist)
-        @test dist.data == zeros(Int, 2, 2)
+        @test dist.data == zeros(Int, 4)
         @test dist.bs == (2,2)
         @test dist.N == 0
     end
@@ -117,7 +117,7 @@
         dist = Entropy(data)
         clear!(dist)
 
-        @test dist.data == zeros(Int, 3, 3)
+        @test dist.data == zeros(Int, 9)
         @test dist.bs == (3, 3)
         @test dist.N == 0
     end

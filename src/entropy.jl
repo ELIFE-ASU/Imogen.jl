@@ -1,12 +1,12 @@
 mutable struct Entropy{D} <: InfoDist
-    data::Array{Int, D}
+    data::Vector{Int}
     bs::NTuple{D, Int}
     N::Int
     function Entropy(b::Int, bs::Int...)
         if b ≤ zero(b) || any(b -> b ≤ zero(b), bs)
             throw(ArgumentError("all bases must be greater than zero"))
         end
-        new{length(bs) + 1}(zeros(Int, b, bs...), tuple(b, bs...), 0)
+        new{length(bs) + 1}(zeros(Int, b * prod(bs)), tuple(b, bs...), 0)
     end
 end
 
@@ -24,7 +24,8 @@ Entropy(xs::AbstractVector{Int}) = Entropy(reshape(xs, 1, length(xs), 1))
 function observe!(dist::Entropy, xs::AbstractArray{Int,3})
     dist.N += size(xs, 2) * size(xs, 3)
     for i in 1:size(xs, 3), t in 1:size(xs, 2)
-        dist.data[xs[:,t,i]...] += 1
+        x = index(xs[:,t,i], dist.bs)
+        dist.data[x] += 1
     end
     dist
 end
