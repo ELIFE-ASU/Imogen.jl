@@ -1,46 +1,73 @@
-mutable struct MutualInfo <: InfoDist
+mutable struct MutualInfo{D,E} <: InfoDist
     joint::Matrix{Int}
     m1::Vector{Int}
     m2::Vector{Int}
-    b1::Int
-    b2::Int
+    b1::NTuple{D,Int}
+    b2::NTuple{E,Int}
     N::Int
-    function MutualInfo(b1::Integer, b2::Integer)
-        if b1 < 2 || b2 < 2
+    function MutualInfo(b1::NTuple{D, <:Integer}, b2::NTuple{E, <:Integer}) where {D, E}
+        if D == 0 || E == 0
+            throw(MethodError(MutualInfo, (b1, b2)))
+        end
+        if any(b -> b < 2, b1) || any(b -> b < 2, b2)
             throw(ArgumentError("the support of each random variable must be at least 2"))
         end
-        new(zeros(Int, b1, b2), zeros(Int, b1), zeros(Int, b2), b1, b2, 0)
+        new{D,E}(zeros(Int, prod(b1), prod(b2)), zeros(Int, prod(b1)), zeros(Int, prod(b2)), b1, b2, 0)
     end
 end
+MutualInfo(b1::Integer, b2::Integer) = MutualInfo((b1,), (b2,))
+MutualInfo(b1::Integer, b2::NTuple) = MutualInfo((b1,), b2)
+MutualInfo(b1::NTuple, b2::Integer) = MutualInfo(b1, (b2,))
 
-function MutualInfo(xs::AbstractVector{Int}, ys::AbstractVector{Int})
+function MutualInfo(xs::AbstractArray{Int,3}, ys::AbstractArray{Int,3})
     if isempty(xs) || isempty(ys)
         throw(ArgumentError("arguments must not be empty"))
     end
-    xmin, xmax = extrema(xs)
-    ymin, ymax = extrema(ys)
-    if xmin < 1 || ymin < 1
-        throw(ArgumentError("observations must be positive, nonzero"))
-    end
-    observe!(MutualInfo(max(2, xmax), max(2, ymax)), xs, ys)
+    xmax = max.(2, maximum(xs; dims=(2,3)))
+    ymax = max.(2, maximum(ys; dims=(2,3)))
+    observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys)
+end
+
+function MutualInfo(xs::AbstractMatrix{Int}, ys::AbstractMatrix{Int})
+    MutualInfo(reshape(xs, size(xs)..., 1), reshape(ys, size(ys)..., 1))
+end
+
+function MutualInfo(xs::AbstractVector{Int}, ys::AbstractVector{Int})
+    MutualInfo(reshape(xs, 1, length(xs), 1), reshape(ys, 1, length(ys), 1))
 end
 
 function estimate(dist::MutualInfo)
     entropy(dist.m1, dist.N) + entropy(dist.m2, dist.N) - entropy(dist.joint, dist.N)
 end
 
-function observe!(dist::MutualInfo, xs::AbstractVector{Int}, ys::AbstractVector{Int})
-    if length(xs) != length(ys)
-        throw(ArgumentError("arguments must have the same length"))
+function observe!(dist::MutualInfo, xs::AbstractArray{Int,3}, ys::AbstractArray{Int,3})
+    if size(xs, 2) != size(ys, 2)
+        throw(ArgumentError("time series should have the same number of timesteps"))
+    elseif size(xs, 3) != size(ys, 3)
+        throw(ArgumentError("time series should have the same number of replicates"))
+    elseif any(b -> b < 1, xs) || any(b -> b < 1, ys)
+        throw(ArgumentError("observations must be positive, nonzero"))
     end
-    dist.N += length(xs)
-    for i in eachindex(xs)
-        x, y = xs[i], ys[i]
-        dist.m1[x] += 1
-        dist.m2[y] += 1
-        dist.joint[x, y] += 1
+
+    dist.N += size(xs, 2) * size(xs, 3)
+    for i in 1:size(xs, 3)
+        for t in 1:size(xs, 2)
+            x = index(xs[:,t,i], dist.b1)
+            y = index(ys[:,t,i], dist.b2)
+            dist.m1[x] += 1
+            dist.m2[y] += 1
+            dist.joint[x, y] += 1
+        end
     end
     dist
+end
+
+function observe!(dist::MutualInfo, xs::AbstractMatrix{Int}, ys::AbstractMatrix{Int})
+    observe!(dist, reshape(xs, size(xs)..., 1), reshape(ys, size(ys)..., 1))
+end
+
+function observe!(dist::MutualInfo, xs::AbstractVector{Int}, ys::AbstractVector{Int})
+    observe!(dist, reshape(xs, 1, length(xs), 1), reshape(ys, 1, length(ys), 1))
 end
 
 @inline function clear!(dist::MutualInfo)
@@ -51,11 +78,11 @@ end
     dist
 end
 
-function mutualinfo!(dist::MutualInfo, xs::AbstractVector{Int}, ys::AbstractVector{Int})
+function mutualinfo!(dist::MutualInfo, xs::AbstractArray{Int}, ys::AbstractArray{Int})
     estimate(observe!(dist, xs, ys))
 end
 
-mutualinfo(xs::AbstractVector{Int}, ys::AbstractVector{Int}) = estimate(MutualInfo(xs, ys))
+mutualinfo(xs::AbstractArray{Int}, ys::AbstractArray{Int}) = estimate(MutualInfo(xs, ys))
 
 function mutualinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64};
                     nn::Int=1, metric::Metric=Chebyshev())

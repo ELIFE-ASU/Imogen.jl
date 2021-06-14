@@ -1,3 +1,12 @@
+function index(xs, bs)
+    x, q = 0, 1
+    for i in eachindex(xs)
+        x += q * (xs[i]-1)
+        q *= bs[i]
+    end
+    x + 1
+end
+
 function subsets(n::Int)
     if n < 1
         throw(DomainError(n, "must be greater than or equal to 1"))
@@ -17,7 +26,7 @@ function subsets(n::Int)
 end
 
 function box(series::AbstractMatrix{Int})
-	smin, smax = extrema(series)
+    smin, smax = extrema(series)
     b = max(2, smin - smax + 1)
     boxed = zeros(Int, size(series, 2))
     for j in 1:size(series, 2)
@@ -50,7 +59,7 @@ function histories(series::AbstractVector{Int}, k::Int; warn=true)
 end
 
 function history(ys::AbstractMatrix{T}, k::Int, τ::Int=1, delay::Int=1) where T
-	start = 1 + max((k-1)*τ+1, delay)
+    start = 1 + max((k-1)*τ+1, delay)
     N, M = size(ys)
     hs = Array{T}(undef, N*k, M - start + 1)
     for i in start:M
