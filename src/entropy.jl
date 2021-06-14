@@ -1,17 +1,32 @@
-mutable struct Entropy <: InfoDist
-    data::Vector{Int}
-    b::Int
+mutable struct Entropy{D} <: InfoDist
+    data::Array{Int, D}
+    bs::NTuple{D, Int}
     N::Int
-    Entropy(b) = new(zeros(Int, b), b, 0)
+    function Entropy(b::Int, bs::Int...)
+        if b ≤ zero(b) || any(b -> b ≤ zero(b), bs)
+            throw(ArgumentError("all bases must be greater than zero"))
+        end
+        new{length(bs) + 1}(zeros(Int, b, bs...), tuple(b, bs...), 0)
+    end
 end
 
-function observe!(dist::Entropy, xs::AbstractVector{Int})
-    dist.N += length(xs)
-    for i in eachindex(xs)
-        dist.data[xs[i]] += 1
+function Entropy(xs::AbstractMatrix{Int})
+    iszero(length(xs)) && throw(ArgumentError("no observations provided"))
+    any(b -> b < 1, xs) && throw(ArgumentError("observations must be 1 or greater"))
+
+    dist = Entropy(maximum(xs; dims=2)...)
+    observe!(dist, xs)
+end
+Entropy(xs::AbstractVector{Int}) = Entropy(reshape(xs, 1, length(xs)))
+
+function observe!(dist::Entropy, xs::AbstractMatrix{Int})
+    dist.N += size(xs, 2)
+    for i in 1:size(xs, 2)
+        dist.data[xs[:,i]...] += 1
     end
     dist
 end
+observe!(dist::Entropy, xs::AbstractVector{Int}) = observe!(dist, reshape(xs, 1, length(xs)))
 
 function entropy(xs::AbstractArray{Int}, N::Int)
     h = N * log2(N)
@@ -24,13 +39,21 @@ function entropy(xs::AbstractArray{Int}, N::Int)
     h / N
 end
 
-estimate(d::Entropy) = entropy(dist.data, dist.N)
+estimate(dist::Entropy) = entropy(dist.data, dist.N)
 
-entropy!(d::Entropy, xs::AbstractVector{Int}) = estimate(observe!(d, xs))
+entropy!(dist::Entropy, xs::AbstractMatrix{Int}) = estimate(observe!(dist, xs))
+entropy!(dist::Entropy, xs::AbstractVector{Int}) = estimate(dist, reshape(xs, 1, length(xs)))
 
-entropy(xs::AbstractVector{Int}) = entropy!(Entropy(maximum(xs)), xs)
+entropy(xs::AbstractArray{Int}) = estimate(Entropy(xs))
 
-Base.length(dist::Entropy) = dist.b
+function clear!(dist::Entropy)
+    fill!(dist.data, 0)
+    dist.N = 0
+end
+
+Base.length(dist::Entropy) = prod(size(dist))
+
+Base.size(dist::Entropy) = dist.bs
 
 Base.getindex(dist::Entropy, idx...) = getindex(dist.data, idx...)
 
