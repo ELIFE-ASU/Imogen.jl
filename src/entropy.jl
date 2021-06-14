@@ -10,23 +10,26 @@ mutable struct Entropy{D} <: InfoDist
     end
 end
 
-function Entropy(xs::AbstractMatrix{Int})
+function Entropy(xs::AbstractArray{Int,3})
     iszero(length(xs)) && throw(ArgumentError("no observations provided"))
     any(b -> b < 1, xs) && throw(ArgumentError("observations must be 1 or greater"))
 
-    dist = Entropy(maximum(xs; dims=2)...)
+    dist = Entropy(maximum(xs; dims=(2,3))...)
     observe!(dist, xs)
 end
-Entropy(xs::AbstractVector{Int}) = Entropy(reshape(xs, 1, length(xs)))
 
-function observe!(dist::Entropy, xs::AbstractMatrix{Int})
-    dist.N += size(xs, 2)
-    for i in 1:size(xs, 2)
-        dist.data[xs[:,i]...] += 1
+Entropy(xs::AbstractMatrix{Int}) = Entropy(reshape(xs, size(xs)..., 1))
+Entropy(xs::AbstractVector{Int}) = Entropy(reshape(xs, 1, length(xs), 1))
+
+function observe!(dist::Entropy, xs::AbstractArray{Int,3})
+    dist.N += size(xs, 2) * size(xs, 3)
+    for i in 1:size(xs, 3), t in 1:size(xs, 2)
+        dist.data[xs[:,t,i]...] += 1
     end
     dist
 end
-observe!(dist::Entropy, xs::AbstractVector{Int}) = observe!(dist, reshape(xs, 1, length(xs)))
+observe!(dist::Entropy, xs::AbstractMatrix{Int}) = observe!(dist, reshape(xs, size(xs)..., 1))
+observe!(dist::Entropy, xs::AbstractVector{Int}) = observe!(dist, reshape(xs, 1, length(xs), 1))
 
 function entropy(xs::AbstractArray{Int}, N::Int)
     h = N * log2(N)
@@ -41,8 +44,7 @@ end
 
 estimate(dist::Entropy) = entropy(dist.data, dist.N)
 
-entropy!(dist::Entropy, xs::AbstractMatrix{Int}) = estimate(observe!(dist, xs))
-entropy!(dist::Entropy, xs::AbstractVector{Int}) = estimate(dist, reshape(xs, 1, length(xs)))
+entropy!(dist::Entropy, xs::AbstractArray{Int}) = estimate(observe!(dist, xs))
 
 entropy(xs::AbstractArray{Int}) = estimate(Entropy(xs))
 

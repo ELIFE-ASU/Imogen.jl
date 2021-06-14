@@ -41,6 +41,19 @@
     end
 
     let dist = Entropy(2, 3)
+        data = zeros(Int, 2, 4, 3)
+        data[:,:,1] = [1 1 1 1; 2 2 2 2]
+        data[:,:,2] = [1 2 2 2; 1 3 3 2]
+        data[:,:,3] = [1 1 1 1; 2 2 2 2]
+
+        observe!(dist, data)
+
+        @test dist.data == [1 8 0; 0 1 2]
+        @test dist.bs == (2, 3)
+        @test dist.N == 12
+    end
+
+    let dist = Entropy(2, 3)
         observe!(dist, [1 1 1 1; 2 2 2 2])
         observe!(dist, [1 2 2 2; 1 3 3 2])
         @test dist.data == [1 4 0; 0 1 2]
@@ -66,6 +79,18 @@
         @test dist.N == 8
     end
 
+    let data = zeros(Int, 2, 5, 3)
+        data[:,:,1] = [1 1 1 1 1; 2 2 2 2 2]
+        data[:,:,2] = [1 2 2 1 1; 3 3 2 2 1]
+        data[:,:,3] = [1 1 1 3 3; 1 1 1 2 2]
+
+        dist = Entropy(data)
+
+        @test dist.data == [4 6 1; 0 1 1; 0 2 0]
+        @test dist.bs == (3, 3)
+        @test dist.N == 15
+    end
+
     @test_throws BoundsError observe!(Entropy(2), [1 2 3])
     @test_throws BoundsError observe!(Entropy(2), [1,2,3])
     @test_throws BoundsError observe!(Entropy(2, 2), [1 2 3; 1 2 3])
@@ -81,6 +106,19 @@
         clear!(dist)
         @test dist.data == zeros(Int, 2, 2)
         @test dist.bs == (2,2)
+        @test dist.N == 0
+    end
+
+    let data = zeros(Int, 2, 5, 3)
+        data[:,:,1] = [1 1 1 1 1; 2 2 2 2 2]
+        data[:,:,2] = [1 2 2 1 1; 3 3 2 2 1]
+        data[:,:,3] = [1 1 1 3 3; 1 1 1 2 2]
+
+        dist = Entropy(data)
+        clear!(dist)
+
+        @test dist.data == zeros(Int, 3, 3)
+        @test dist.bs == (3, 3)
         @test dist.N == 0
     end
 
@@ -124,5 +162,21 @@
 
     let xs = [1,2,3,1,2,3,1,1,3]
         @test entropy(xs) ≈ 1.530493 atol=1e-6
+    end
+
+    let xs = zeros(Int, 1, 5, 2)
+        xs[:,:,1] = [1,2,1,2,1]
+        xs[:,:,2] = [1,2,3,2,1]
+
+        @test entropy(xs) ≈ 1.360964 atol=1e-6
+    end
+
+    let xs = zeros(Int, 2, 9, 2)
+        xs[:,:,1] = [2 2 1 1 2 2 1 1 2;
+                     2 2 2 1 1 1 2 2 2]
+        xs[:,:,2] = [1 1 1 1 1 1 1 1 1;
+                     2 2 2 1 1 1 2 2 2]
+
+        @test entropy(xs) ≈ 1.765246 atol=1e-6
     end
 end
