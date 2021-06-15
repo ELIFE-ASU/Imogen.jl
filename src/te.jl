@@ -9,7 +9,7 @@ mutable struct TransferEntropy <: InfoDist
     q::Int
     N::Int
 
-    function TransferEntropy(bs::Int, bt::Int, k::Int)
+    function TransferEntropy(bs::Int, bt::Int; k::Int=1)
         if bs < 2 || bt < 2
             throw(ArgumentError("the support of each random variable must be at least 2"))
         end
@@ -35,7 +35,7 @@ function TransferEntropy(source::AbstractVector{Int}, target::AbstractVector{Int
         throw(ArgumentError("observations must be positive, nonzero"))
     end
     bs, bt = max(2, smax), max(2, tmax)
-    observe!(TransferEntropy(bs, bt, k), source, target)
+    observe!(TransferEntropy(bs, bt; k), source, target)
 end
 
 @inline function clear!(dist::TransferEntropy)
