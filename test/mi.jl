@@ -339,4 +339,43 @@
         @test mutualinfo(as, bs) ≈ 0.595553 atol=1e-6
         @test mutualinfo(bs, as) ≈ 0.595553 atol=1e-6
     end
+
+    @testset "Lagged Mutual Information" begin
+        let xs = [1,2,1,1,2,2]
+            ys = [3,1,2,1,1,2]
+            @test mutualinfo(xs, ys; lag=1) == mutualinfo(xs[1:end-1], ys[2:end])
+            @test mutualinfo(xs, ys; lag=2) == mutualinfo(xs[1:end-2], ys[3:end])
+            @test mutualinfo(xs, ys; lag=-1) == mutualinfo(ys[1:end-1], xs[2:end])
+            @test mutualinfo(xs, ys; lag=-2) == mutualinfo(ys[1:end-2], xs[3:end])
+        end
+
+        let xs = [2 1 2 2 1 2 2 1 2;
+                  2 2 1 1 2 2 1 1 2]
+            ys = [2 2 2 1 1 1 2 2 2;
+                  2 1 2 1 2 1 2 1 2]
+
+            @test mutualinfo(xs, ys; lag=1) == mutualinfo(xs[:,1:end-1], ys[:,2:end])
+            @test mutualinfo(xs, ys; lag=2) == mutualinfo(xs[:,1:end-2], ys[:,3:end])
+            @test mutualinfo(xs, ys; lag=-1) == mutualinfo(ys[:,1:end-1], xs[:,2:end])
+            @test mutualinfo(xs, ys; lag=-2) == mutualinfo(ys[:,1:end-2], xs[:,3:end])
+        end
+
+        let xs = zeros(Int, 2, 9, 2)
+            xs[:,:,1] = [2 1 2 2 1 2 2 1 2;
+                         2 2 1 1 2 2 1 1 2]
+            xs[:,:,2] = [2 2 2 2 1 1 1 1 2;
+                         2 2 1 1 2 2 1 1 2]
+
+            ys = zeros(Int, 2, 9, 2)
+            ys[:,:,1] = [2 2 2 1 1 1 2 2 2;
+                         2 1 2 1 2 1 2 1 2]
+            ys[:,:,2] = [2 2 2 1 1 1 2 2 2;
+                         2 2 2 1 1 1 2 2 2]
+
+            @test mutualinfo(xs, ys; lag=1) == mutualinfo(xs[:,1:end-1,:], ys[:,2:end,:])
+            @test mutualinfo(xs, ys; lag=2) == mutualinfo(xs[:,1:end-2,:], ys[:,3:end,:])
+            @test mutualinfo(xs, ys; lag=-1) == mutualinfo(ys[:,1:end-1,:], xs[:,2:end,:])
+            @test mutualinfo(xs, ys; lag=-2) == mutualinfo(ys[:,1:end-2,:], xs[:,3:end,:])
+        end
+    end
 end

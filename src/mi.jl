@@ -19,38 +19,39 @@ MutualInfo(b1::Integer, b2::Integer) = MutualInfo((b1,), (b2,))
 MutualInfo(b1::Integer, b2::NTuple) = MutualInfo((b1,), b2)
 MutualInfo(b1::NTuple, b2::Integer) = MutualInfo(b1, (b2,))
 
-function MutualInfo(xs::AbstractArray{Int,3}, ys::AbstractArray{Int,3})
+function MutualInfo(xs::AbstractArray{Int,3}, ys::AbstractArray{Int,3}; kwargs...)
     if isempty(xs) || isempty(ys)
         throw(ArgumentError("arguments must not be empty"))
     end
     xmax = max.(2, maximum(xs; dims=(2,3)))
     ymax = max.(2, maximum(ys; dims=(2,3)))
-    observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys)
+    observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys; kwargs...)
 end
 
-function MutualInfo(xs::AbstractArray{Int,2}, ys::AbstractArray{Int,2})
+function MutualInfo(xs::AbstractArray{Int,2}, ys::AbstractArray{Int,2}; kwargs...)
     if isempty(xs) || isempty(ys)
         throw(ArgumentError("arguments must not be empty"))
     end
     xmax = max.(2, maximum(xs; dims=2))
     ymax = max.(2, maximum(ys; dims=2))
-    observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys)
+    observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys; kwargs...)
 end
 
-function MutualInfo(xs::AbstractArray{Int,1}, ys::AbstractArray{Int,1})
+function MutualInfo(xs::AbstractArray{Int,1}, ys::AbstractArray{Int,1}; kwargs...)
     if isempty(xs) || isempty(ys)
         throw(ArgumentError("arguments must not be empty"))
     end
     xmax = max(2, maximum(xs))
     ymax = max(2, maximum(ys))
-    observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys)
+    observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys; kwargs...)
 end
 
 function estimate(dist::MutualInfo)
     entropy(dist.m1, dist.N) + entropy(dist.m2, dist.N) - entropy(dist.joint, dist.N)
 end
 
-function observe!(dist::MutualInfo, xs::AbstractArray{Int,3}, ys::AbstractArray{Int,3})
+function observe!(dist::MutualInfo, xs::AbstractArray{Int,3}, ys::AbstractArray{Int,3};
+                  lag::Int=0, kwargs...)
     if size(xs, 2) != size(ys, 2)
         throw(ArgumentError("time series should have the same number of timesteps"))
     elseif size(xs, 3) != size(ys, 3)
@@ -59,29 +60,14 @@ function observe!(dist::MutualInfo, xs::AbstractArray{Int,3}, ys::AbstractArray{
         throw(ArgumentError("observations must be positive, nonzero"))
     end
 
-    dist.N += size(xs, 2) * size(xs, 3)
-    @views for i in 1:size(xs, 3)
-        for t in 1:size(xs, 2)
-            x = index(xs[:,t,i], dist.b1)
-            y = index(ys[:,t,i], dist.b2)
-            dist.m1[x] += 1
-            dist.m2[y] += 1
-            dist.joint[x, y] += 1
+    N = size(xs, 2) - abs(lag)
+    dist.N += N * size(xs, 3)
+    @views for i in 1:size(xs, 3), t in 1:N
+        x, y = if lag < zero(lag)
+            index(xs[:,t-lag,i], dist.b1), index(ys[:,t,i], dist.b2)
+        else
+            index(xs[:,t,i], dist.b1), index(ys[:,t+lag,i], dist.b2)
         end
-    end
-    dist
-end
-
-function observe!(dist::MutualInfo, xs::AbstractArray{Int,2}, ys::AbstractArray{Int,2})
-    if size(xs, 2) != size(ys, 2)
-        throw(ArgumentError("time series should have the same number of timesteps"))
-    elseif any(b -> b < 1, xs) || any(b -> b < 1, ys)
-        throw(ArgumentError("observations must be positive, nonzero"))
-    end
-
-    dist.N += size(xs, 2)
-    @views for t in 1:size(xs, 2)
-        x, y = index(xs[:,t], dist.b1), index(ys[:,t], dist.b2)
         dist.m1[x] += 1
         dist.m2[y] += 1
         dist.joint[x, y] += 1
@@ -89,16 +75,47 @@ function observe!(dist::MutualInfo, xs::AbstractArray{Int,2}, ys::AbstractArray{
     dist
 end
 
-function observe!(dist::MutualInfo, xs::AbstractArray{Int,1}, ys::AbstractArray{Int,1})
+function observe!(dist::MutualInfo, xs::AbstractArray{Int,2}, ys::AbstractArray{Int,2};
+                  lag::Int=0, kwargs...)
+    if size(xs, 2) != size(ys, 2)
+        throw(ArgumentError("time series should have the same number of timesteps"))
+    elseif any(b -> b < 1, xs) || any(b -> b < 1, ys)
+        throw(ArgumentError("observations must be positive, nonzero"))
+    end
+
+    N = size(xs, 2) - abs(lag)
+
+    dist.N += N
+    @views for t in 1:N
+        x, y = if lag < zero(lag)
+            index(xs[:,t-lag], dist.b1), index(ys[:,t], dist.b2)
+        else
+            index(xs[:,t], dist.b1), index(ys[:,t+lag], dist.b2)
+        end
+        dist.m1[x] += 1
+        dist.m2[y] += 1
+        dist.joint[x, y] += 1
+    end
+    dist
+end
+
+function observe!(dist::MutualInfo, xs::AbstractArray{Int,1}, ys::AbstractArray{Int,1};
+                  lag::Int=0, kwargs...)
     if length(xs) != length(ys)
         throw(ArgumentError("time series should have the same number of timesteps"))
     elseif any(b -> b < 1, xs) || any(b -> b < 1, ys)
         throw(ArgumentError("observations must be positive, nonzero"))
     end
 
-    dist.N += length(xs)
-    @views for t in 1:length(xs)
-        x, y = xs[t], ys[t]
+    N = length(xs) - abs(lag)
+
+    dist.N += N
+    @views for t in 1:N
+        x, y = if lag < zero(lag)
+            xs[t-lag], ys[t]
+        else
+            xs[t], ys[t+lag]
+        end
         dist.m1[x] += 1
         dist.m2[y] += 1
         dist.joint[x, y] += 1
@@ -114,11 +131,13 @@ end
     dist
 end
 
-function mutualinfo!(dist::MutualInfo, xs::AbstractArray{Int}, ys::AbstractArray{Int})
-    estimate(observe!(dist, xs, ys))
+function mutualinfo!(dist::MutualInfo, xs::AbstractArray{Int}, ys::AbstractArray{Int}; kwargs...)
+    estimate(observe!(dist, xs, ys, kwargs...))
 end
 
-mutualinfo(xs::AbstractArray{Int}, ys::AbstractArray{Int}) = estimate(MutualInfo(xs, ys))
+function mutualinfo(xs::AbstractArray{Int}, ys::AbstractArray{Int}; kwargs...)
+    estimate(MutualInfo(xs, ys; kwargs...))
+end
 
 function mutualinfo(::Type{Kraskov1}, xs::AbstractMatrix{Float64}, ys::AbstractMatrix{Float64};
                     nn::Int=1, metric::Metric=Chebyshev())
