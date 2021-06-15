@@ -71,38 +71,14 @@ end
 end
 
 function observe!(dist::TransferEntropy, source::AbstractArray{Int,3}, target::AbstractArray{Int,3})
-    if size(source, 2) != size(target, 2)
-        throw(ArgumentError("time series should have the same number of timesteps"))
-    elseif size(source, 3) != size(target, 3)
+    if size(source, 3) != size(target, 3)
         throw(ArgumentError("time series should have the same number of replicates"))
-    elseif length(target) <= dist.k
-        throw(ArgumentError("target series is too short given k=$(dist.k)"))
-    elseif any(b -> b < 1, source) || any(b -> b < 1, target)
-        throw(ArgumentError("observations must be positive, nonzero"))
     end
 
-    N = size(target, 2) - 1
-    dist.N += (N - dist.k + 1) * size(source, 3)
     @views for i in 1:size(source, 3)
-        history = 0
-        for t in 1:dist.k
-            history = dist.Bt*history + index(target[:,t,i], dist.bt) - 1;
-        end
-        for t in dist.k:N
-            x, y = index(source[:,t,i], dist.bs), index(target[:,t+1,i], dist.bt)
-            future = y - 1
-            src = dist.Bs*history + x - 1
-            predicate = dist.Bt*history + future
-            state = dist.Bs*predicate + x - 1
-
-            dist.states[state + 1] += 1
-            dist.histories[history + 1] += 1
-            dist.sources[src + 1] += 1
-            dist.predicates[predicate + 1] += 1
-
-            history = predicate - dist.q*(index(target[:,t-dist.k+1,i], dist.bt) - 1)
-        end
+        observe!(dist, source[:,:,i], target[:,:,i])
     end
+
     dist
 end
 

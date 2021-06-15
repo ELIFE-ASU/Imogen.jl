@@ -33,10 +33,8 @@ function Entropy(xs::AbstractArray{Int,1})
 end
 
 function observe!(dist::Entropy, xs::AbstractArray{Int,3})
-    dist.N += size(xs, 2) * size(xs, 3)
-    @views for i in 1:size(xs, 3), t in 1:size(xs, 2)
-        @inbounds x = index(xs[:,t,i], dist.bs)
-        dist.data[x] += 1
+    @views for i in 1:size(xs, 3)
+        @inbounds observe!(dist, xs[:,:,i])
     end
     dist
 end

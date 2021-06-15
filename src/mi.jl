@@ -50,28 +50,15 @@ function estimate(dist::MutualInfo)
     entropy(dist.m1, dist.N) + entropy(dist.m2, dist.N) - entropy(dist.joint, dist.N)
 end
 
-function observe!(dist::MutualInfo, xs::AbstractArray{Int,3}, ys::AbstractArray{Int,3};
-                  lag::Int=0, kwargs...)
-    if size(xs, 2) != size(ys, 2)
-        throw(ArgumentError("time series should have the same number of timesteps"))
-    elseif size(xs, 3) != size(ys, 3)
+function observe!(dist::MutualInfo, xs::AbstractArray{Int,3}, ys::AbstractArray{Int,3}; kwargs...)
+    if size(xs, 3) != size(ys, 3)
         throw(ArgumentError("time series should have the same number of replicates"))
-    elseif any(b -> b < 1, xs) || any(b -> b < 1, ys)
-        throw(ArgumentError("observations must be positive, nonzero"))
     end
 
-    N = size(xs, 2) - abs(lag)
-    dist.N += N * size(xs, 3)
-    @views for i in 1:size(xs, 3), t in 1:N
-        x, y = if lag < zero(lag)
-            index(xs[:,t-lag,i], dist.b1), index(ys[:,t,i], dist.b2)
-        else
-            index(xs[:,t,i], dist.b1), index(ys[:,t+lag,i], dist.b2)
-        end
-        dist.m1[x] += 1
-        dist.m2[y] += 1
-        dist.joint[x, y] += 1
+    @views for i in 1:size(xs, 3)
+        observe!(dist, xs[:,:,i], ys[:,:,i]; kwargs...)
     end
+
     dist
 end
 

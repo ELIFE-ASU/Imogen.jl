@@ -54,23 +54,8 @@ function estimate(dist::ActiveInfo)
 end
 
 function observe!(dist::ActiveInfo, xs::AbstractArray{Int,3})
-    if size(xs, 2) ≤ dist.k
-        throw(ArgumentError("data's length must be greater than the history length"))
-    end
-    dist.N += (size(xs, 2) - dist.k) * size(xs, 3)
     @views for i in 1:size(xs, 3)
-        history, q = 0, 1
-        for t in 1:dist.k
-            q *= dist.B
-            history = dist.B * history + index(xs[:,t,i], dist.bs) - 1
-        end
-        for t in dist.k+1:size(xs, 2)
-            x = index(xs[:,t,i], dist.bs)
-            dist.future[x] += 1
-            dist.history[history + 1] += 1
-            dist.joint[x, history + 1] += 1
-            history = dist.B * history - q * (index(xs[:,t-dist.k,i], dist.bs) - 1) + x - 1
-        end
+        observe!(dist, xs[:,:,i])
     end
     dist
 end
