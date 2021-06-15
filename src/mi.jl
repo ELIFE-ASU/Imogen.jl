@@ -28,12 +28,22 @@ function MutualInfo(xs::AbstractArray{Int,3}, ys::AbstractArray{Int,3})
     observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys)
 end
 
-function MutualInfo(xs::AbstractMatrix{Int}, ys::AbstractMatrix{Int})
-    MutualInfo(reshape(xs, size(xs)..., 1), reshape(ys, size(ys)..., 1))
+function MutualInfo(xs::AbstractArray{Int,2}, ys::AbstractArray{Int,2})
+    if isempty(xs) || isempty(ys)
+        throw(ArgumentError("arguments must not be empty"))
+    end
+    xmax = max.(2, maximum(xs; dims=2))
+    ymax = max.(2, maximum(ys; dims=2))
+    observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys)
 end
 
-function MutualInfo(xs::AbstractVector{Int}, ys::AbstractVector{Int})
-    MutualInfo(reshape(xs, 1, length(xs), 1), reshape(ys, 1, length(ys), 1))
+function MutualInfo(xs::AbstractArray{Int,1}, ys::AbstractArray{Int,1})
+    if isempty(xs) || isempty(ys)
+        throw(ArgumentError("arguments must not be empty"))
+    end
+    xmax = max(2, maximum(xs))
+    ymax = max(2, maximum(ys))
+    observe!(MutualInfo(tuple(xmax...), tuple(ymax...)), xs, ys)
 end
 
 function estimate(dist::MutualInfo)
@@ -50,7 +60,7 @@ function observe!(dist::MutualInfo, xs::AbstractArray{Int,3}, ys::AbstractArray{
     end
 
     dist.N += size(xs, 2) * size(xs, 3)
-    for i in 1:size(xs, 3)
+    @views for i in 1:size(xs, 3)
         for t in 1:size(xs, 2)
             x = index(xs[:,t,i], dist.b1)
             y = index(ys[:,t,i], dist.b2)
@@ -62,12 +72,38 @@ function observe!(dist::MutualInfo, xs::AbstractArray{Int,3}, ys::AbstractArray{
     dist
 end
 
-function observe!(dist::MutualInfo, xs::AbstractMatrix{Int}, ys::AbstractMatrix{Int})
-    observe!(dist, reshape(xs, size(xs)..., 1), reshape(ys, size(ys)..., 1))
+function observe!(dist::MutualInfo, xs::AbstractArray{Int,2}, ys::AbstractArray{Int,2})
+    if size(xs, 2) != size(ys, 2)
+        throw(ArgumentError("time series should have the same number of timesteps"))
+    elseif any(b -> b < 1, xs) || any(b -> b < 1, ys)
+        throw(ArgumentError("observations must be positive, nonzero"))
+    end
+
+    dist.N += size(xs, 2)
+    @views for t in 1:size(xs, 2)
+        x, y = index(xs[:,t], dist.b1), index(ys[:,t], dist.b2)
+        dist.m1[x] += 1
+        dist.m2[y] += 1
+        dist.joint[x, y] += 1
+    end
+    dist
 end
 
-function observe!(dist::MutualInfo, xs::AbstractVector{Int}, ys::AbstractVector{Int})
-    observe!(dist, reshape(xs, 1, length(xs), 1), reshape(ys, 1, length(ys), 1))
+function observe!(dist::MutualInfo, xs::AbstractArray{Int,1}, ys::AbstractArray{Int,1})
+    if length(xs) != length(ys)
+        throw(ArgumentError("time series should have the same number of timesteps"))
+    elseif any(b -> b < 1, xs) || any(b -> b < 1, ys)
+        throw(ArgumentError("observations must be positive, nonzero"))
+    end
+
+    dist.N += length(xs)
+    @views for t in 1:length(xs)
+        x, y = xs[t], ys[t]
+        dist.m1[x] += 1
+        dist.m2[y] += 1
+        dist.joint[x, y] += 1
+    end
+    dist
 end
 
 @inline function clear!(dist::MutualInfo)
