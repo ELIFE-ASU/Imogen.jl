@@ -1,41 +1,64 @@
-mutable struct TransferEntropy <: InfoDist
-    k::Int
+mutable struct TransferEntropy{D,E} <: InfoDist
     states::Vector{Int}
     histories::Vector{Int}
     sources::Vector{Int}
     predicates::Vector{Int}
-    bs::Int
-    bt::Int
+    bs::NTuple{D,Int}
+    bt::NTuple{E,Int}
+    k::Int
+    Bs::Int
+    Bt::Int
     q::Int
     N::Int
 
-    function TransferEntropy(bs::Int, bt::Int; k::Int=1)
-        if bs < 2 || bt < 2
+    function TransferEntropy(bs::NTuple{D, <:Integer}, bt::NTuple{E, <:Integer}; k::Int=1) where {D,E}
+        if D == 0 || E == 0
+            throw(MethodError(TransferEntropy, (bs, ts, kwargs...)))
+        end
+        if any(b -> b < 2, bs) || any(b -> b < 2, bt)
             throw(ArgumentError("the support of each random variable must be at least 2"))
         end
         if k < 1
             throw(ArgumentError("history length must be at least 1"))
         end
-        q = bt^k
-        states = zeros(Int, bs*bt*q)
+        Bs, Bt = prod(bs), prod(bt)
+        q = Bt^k
+        states = zeros(Int, Bs*Bt*q)
         histories = zeros(Int, q)
-        sources = zeros(Int, bs*q)
-        predicates = zeros(Int, bt*q)
-        new(k, states, histories, sources, predicates, bs, bt, q, 0)
+        sources = zeros(Int, Bt*q)
+        predicates = zeros(Int, Bt*q)
+        new{D,E}(states, histories, sources, predicates, bs, bt, k, Bs, Bt, q, 0)
     end
 end
+TransferEntropy(bs::Integer, bt::Integer; kwargs...) = TransferEntropy((bs,), (bt,); kwargs...)
+TransferEntropy(bs::Integer, bt::NTuple; kwargs...) = TransferEntropy((bs,), bt; kwargs...)
+TransferEntropy(bs::NTuple, bt::Integer; kwargs...) = TransferEntropy(bs, (bt,); kwargs...)
 
-function TransferEntropy(source::AbstractVector{Int}, target::AbstractVector{Int}; k::Int=1)
+function TransferEntropy(source::AbstractArray{Int,3}, target::AbstractArray{Int,3}; k::Int=1)
     if isempty(source) || isempty(target)
         throw(ArgumentError("arguments must not be empty"))
     end
-    smin, smax = extrema(source)
-    tmin, tmax = extrema(target)
-    if smin < 1 || tmin < 1
-        throw(ArgumentError("observations must be positive, nonzero"))
+    smax = max.(2, maximum(source, dims=(2,3)))
+    tmax = max.(2, maximum(target, dims=(2,3)))
+    observe!(TransferEntropy(tuple(smax...), tuple(tmax...); k), source, target)
+end
+
+function TransferEntropy(source::AbstractArray{Int,2}, target::AbstractArray{Int,2}; k::Int=1)
+    if isempty(source) || isempty(target)
+        throw(ArgumentError("arguments must not be empty"))
     end
-    bs, bt = max(2, smax), max(2, tmax)
-    observe!(TransferEntropy(bs, bt; k), source, target)
+    smax = max.(2, maximum(source, dims=2))
+    tmax = max.(2, maximum(target, dims=2))
+    observe!(TransferEntropy(tuple(smax...), tuple(tmax...); k), source, target)
+end
+
+function TransferEntropy(source::AbstractArray{Int,1}, target::AbstractArray{Int,1}; k::Int=1)
+    if isempty(source) || isempty(target)
+        throw(ArgumentError("arguments must not be empty"))
+    end
+    smax = max(2, maximum(source))
+    tmax = max(2, maximum(target))
+    observe!(TransferEntropy(tuple(smax...), tuple(tmax...); k), source, target)
 end
 
 @inline function clear!(dist::TransferEntropy)
@@ -47,30 +70,101 @@ end
     dist
 end
 
-function observe!(dist::TransferEntropy, source::AbstractVector{Int}, target::AbstractVector{Int})
-    if length(source) != length(target)
-        throw(ArgumentError("arguments must have the same length"))
+function observe!(dist::TransferEntropy, source::AbstractArray{Int,3}, target::AbstractArray{Int,3})
+    if size(source, 2) != size(target, 2)
+        throw(ArgumentError("time series should have the same number of timesteps"))
+    elseif size(source, 3) != size(target, 3)
+        throw(ArgumentError("time series should have the same number of replicates"))
     elseif length(target) <= dist.k
         throw(ArgumentError("target series is too short given k=$(dist.k)"))
+    elseif any(b -> b < 1, source) || any(b -> b < 1, target)
+        throw(ArgumentError("observations must be positive, nonzero"))
     end
-    rng = dist.k:(length(target)-1)
-    dist.N += length(rng)
+
+    N = size(target, 2) - 1
+    dist.N += (N - dist.k + 1) * size(source, 3)
+    @views for i in 1:size(source, 3)
+        history = 0
+        for t in 1:dist.k
+            history = dist.Bt*history + index(target[:,t,i], dist.bt) - 1;
+        end
+        for t in dist.k:N
+            x, y = index(source[:,t,i], dist.bs), index(target[:,t+1,i], dist.bt)
+            future = y - 1
+            src = dist.Bs*history + x - 1
+            predicate = dist.Bt*history + future
+            state = dist.Bs*predicate + x - 1
+
+            dist.states[state + 1] += 1
+            dist.histories[history + 1] += 1
+            dist.sources[src + 1] += 1
+            dist.predicates[predicate + 1] += 1
+
+            history = predicate - dist.q*(index(target[:,t-dist.k+1,i], dist.bt) - 1)
+        end
+    end
+    dist
+end
+
+function observe!(dist::TransferEntropy, source::AbstractArray{Int,2}, target::AbstractArray{Int,2})
+    if size(source, 2) != size(target, 2)
+        throw(ArgumentError("time series should have the same number of timesteps"))
+    elseif length(target) <= dist.k
+        throw(ArgumentError("target series is too short given k=$(dist.k)"))
+    elseif any(b -> b < 1, source) || any(b -> b < 1, target)
+        throw(ArgumentError("observations must be positive, nonzero"))
+    end
+
+    N = size(target, 2) - 1
+    dist.N += N - dist.k + 1
     history = 0
-    for i in 1:dist.k
-        history = dist.bt*history + target[i] - 1;
+    @views for t in 1:dist.k
+        history = dist.Bt*history + index(target[:,t], dist.bt) - 1;
     end
-    for i in rng
-        future = target[i + 1] - 1
-        src = dist.bs*history + source[i] - 1
-        predicate = dist.bt*history + future
-        state = dist.bs*predicate + source[i] - 1
+    @views for t in dist.k:N
+        x, y = index(source[:,t], dist.bs), index(target[:,t+1], dist.bt)
+        future = y - 1
+        src = dist.Bs*history + x - 1
+        predicate = dist.Bt*history + future
+        state = dist.Bs*predicate + x - 1
 
         dist.states[state + 1] += 1
         dist.histories[history + 1] += 1
         dist.sources[src + 1] += 1
         dist.predicates[predicate + 1] += 1
 
-        history = predicate - dist.q*(target[i - dist.k + 1] - 1)
+        history = predicate - dist.q*(index(target[:,t-dist.k+1], dist.bt) - 1)
+    end
+    dist
+end
+
+function observe!(dist::TransferEntropy, source::AbstractArray{Int,1}, target::AbstractArray{Int,1})
+    if length(source) != length(target)
+        throw(ArgumentError("time series should have the same number of timesteps"))
+    elseif length(target) <= dist.k
+        throw(ArgumentError("target series is too short given k=$(dist.k)"))
+    elseif any(b -> b < 1, source) || any(b -> b < 1, target)
+        throw(ArgumentError("observations must be positive, nonzero"))
+    end
+
+    N = length(target) - 1
+    dist.N += N - dist.k + 1
+    history = 0
+    @views for t in 1:dist.k
+        history = dist.Bt*history + target[t] - 1;
+    end
+    @views for t in dist.k:N
+        future = target[t + 1] - 1
+        src = dist.Bs*history + source[t] - 1
+        predicate = dist.Bt*history + future
+        state = dist.Bs*predicate + source[t] - 1
+
+        dist.states[state + 1] += 1
+        dist.histories[history + 1] += 1
+        dist.sources[src + 1] += 1
+        dist.predicates[predicate + 1] += 1
+
+        history = predicate - dist.q*(target[t - dist.k + 1] - 1)
     end
     dist
 end
@@ -82,12 +176,12 @@ function estimate(dist::TransferEntropy)
     entropy(dist.histories, dist.N)
 end
 
-function transferentropy!(dist::TransferEntropy, source::AbstractVector{Int},
-                          target::AbstractVector{Int})
+function transferentropy!(dist::TransferEntropy, source::AbstractArray{Int},
+                          target::AbstractArray{Int})
     estimate(observe!(dist, source, target))
 end
 
-function transferentropy(source::AbstractVector{Int}, target::AbstractVector{Int}; kwargs...)
+function transferentropy(source::AbstractArray{Int}, target::AbstractArray{Int}; kwargs...)
     estimate(TransferEntropy(source, target; kwargs...))
 end
 

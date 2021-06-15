@@ -77,6 +77,50 @@
         @test transferentropy!(te, as, bs) ≈ 1/4 atol=1e-6
     end
 
+    let as = [4,4,4,3,2,1,1,1,2]
+        bs = [3,3,4,4,1,2,2,1,3]
+        @test transferentropy(as, bs; k=2) ≈ 0.000000 atol=1e-6
+        @test transferentropy(bs, as; k=2) ≈ 0.571429 atol=1e-6
+    end
+
+    let as = [4,2,1,1,3,2,1,3,3]
+        bs = [3,3,2,2,2,2,3,1,4]
+        @test transferentropy(as, bs; k=2) ≈ 0.393555 atol=1e-6
+        @test transferentropy(bs, as; k=2) ≈ 0.571429 atol=1e-6
+    end
+
+    let as = [2 2 2 1 2 1 1 1 2;
+              2 2 2 2 1 1 1 1 1]
+        bs = [1 1 2 2 1 2 2 1 1;
+              2 2 2 2 1 1 1 1 2]
+        @test transferentropy(as, bs; k=2) ≈ 0.000000 atol=1e-6
+        @test transferentropy(bs, as; k=2) ≈ 0.571429 atol=1e-6
+    end
+
+    let as = [2 2 1 1 1 2 1 1 1;
+              2 1 1 1 2 1 1 2 2]
+        bs = [1 1 2 2 2 2 1 1 2;
+              2 2 1 1 1 1 2 1 2]
+        @test transferentropy(as, bs; k=2) ≈ 0.393555 atol=1e-6
+        @test transferentropy(bs, as; k=2) ≈ 0.571429 atol=1e-6
+    end
+
+    let as = zeros(Int, 2, 9, 2)
+        as[:,:,1] = [2 2 2 1 2 1 1 1 2;
+                     2 2 2 2 1 1 1 1 1]
+        as[:,:,2] = [2 2 1 1 1 2 1 1 1;
+                     2 1 1 1 2 1 1 2 2]
+
+        bs = zeros(Int, 2, 9, 2)
+        bs[:,:,1] = [1 1 2 2 1 2 2 1 1;
+                     2 2 2 2 1 1 1 1 2]
+        bs[:,:,2] = [1 1 2 2 2 2 1 1 2;
+                     2 2 1 1 1 1 2 1 2]
+
+        @test transferentropy(as, bs; k=2) ≈ 0.428571 atol=1e-6
+        @test transferentropy(bs, as; k=2) ≈ 0.679270 atol=1e-6
+    end
+
     let as = [2 2 1 1 1 2 2 2 2 1;
               2 1 2 1 2 2 1 1 2 2]
         bs = [1 1 2 2 2 2 2 2 1 1;
