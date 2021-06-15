@@ -1,4 +1,4 @@
-using Base.Meta
+using Base.Meta, RecipesBase
 using Distributions: Chisq, cdf
 
 abstract type Significance end
@@ -126,4 +126,33 @@ macro sig(method, func, args...)
     end
 
     esc(func)
+end
+
+@recipe function f(s::EmpiricalSig)
+    xguide --> "value"
+    yguide --> "PDF"
+    @series begin
+        seriestype := :density
+        label --> nothing
+        s.values
+    end
+    @series begin
+        seriestype := :vline
+        label --> "ground truth"
+        [s.gt]
+    end
+end
+
+@recipe function f(s::AnalyticSig)
+    xguide --> "value"
+    yguide --> "PDF"
+    @series begin
+        label --> nothing
+        s.dist
+    end
+    @series begin
+        seriestype := :vline
+        label --> "ground truth"
+        [s.gt]
+    end
 end
