@@ -1,7 +1,7 @@
 name = "Imogen"
 uuid = "06c3e0d4-3ef7-44c8-b5b3-e8219edcdfd5"
 authors = ["Douglas G. Moore <doug@dglmoore.com>"]
-version = "0.3.1"
+version = "0.4.0"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
