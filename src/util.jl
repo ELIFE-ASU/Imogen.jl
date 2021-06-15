@@ -1,7 +1,7 @@
-function index(xs, bs)
+function index(xs::AbstractVector{Int}, bs)
     x, q = 0, 1
-    for i in eachindex(xs)
-        x += q * (xs[i]-1)
+    for i in 1:length(xs)
+        x += q * (xs[i] - 1)
         q *= bs[i]
     end
     x + 1

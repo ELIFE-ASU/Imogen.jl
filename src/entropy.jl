@@ -17,25 +17,49 @@ function Entropy(xs::AbstractArray{Int,3})
     dist = Entropy(maximum(xs; dims=(2,3))...)
     observe!(dist, xs)
 end
+function Entropy(xs::AbstractArray{Int,2})
+    iszero(length(xs)) && throw(ArgumentError("no observations provided"))
+    any(b -> b < 1, xs) && throw(ArgumentError("observations must be 1 or greater"))
 
-Entropy(xs::AbstractMatrix{Int}) = Entropy(reshape(xs, size(xs)..., 1))
-Entropy(xs::AbstractVector{Int}) = Entropy(reshape(xs, 1, length(xs), 1))
+    dist = Entropy(maximum(xs; dims=2)...)
+    observe!(dist, xs)
+end
+function Entropy(xs::AbstractArray{Int,1})
+    iszero(length(xs)) && throw(ArgumentError("no observations provided"))
+    any(b -> b < 1, xs) && throw(ArgumentError("observations must be 1 or greater"))
+
+    dist = Entropy(maximum(xs))
+    observe!(dist, xs)
+end
 
 function observe!(dist::Entropy, xs::AbstractArray{Int,3})
     dist.N += size(xs, 2) * size(xs, 3)
-    for i in 1:size(xs, 3), t in 1:size(xs, 2)
-        x = index(xs[:,t,i], dist.bs)
+    @views for i in 1:size(xs, 3), t in 1:size(xs, 2)
+        @inbounds x = index(xs[:,t,i], dist.bs)
         dist.data[x] += 1
     end
     dist
 end
-observe!(dist::Entropy, xs::AbstractMatrix{Int}) = observe!(dist, reshape(xs, size(xs)..., 1))
-observe!(dist::Entropy, xs::AbstractVector{Int}) = observe!(dist, reshape(xs, 1, length(xs), 1))
+function observe!(dist::Entropy, xs::AbstractArray{Int,2})
+    dist.N += size(xs, 2)
+    @views for t in 1:size(xs, 2)
+        @inbounds x = index(xs[:,t], dist.bs)
+        dist.data[x] += 1
+    end
+    dist
+end
+function observe!(dist::Entropy, xs::AbstractArray{Int,1})
+    dist.N += length(xs)
+    @views for t in 1:length(xs)
+        @inbounds dist.data[xs[t]] += 1
+    end
+    dist
+end
 
 function entropy(xs::AbstractArray{Int}, N::Int)
     h = N * log2(N)
     for i in eachindex(xs)
-        n = xs[i]
+        @inbounds n = xs[i]
         if !iszero(n)
             h -= n * log2(n)
         end
