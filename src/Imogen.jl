@@ -4,7 +4,9 @@ if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@optle
     @eval Base.Experimental.@optlevel 3
 end
 
-using DataFrames, Distances, NearestNeighbors, SpecialFunctions, Statistics
+using DataFrames, Distances, NearestNeighbors, SpecialFunctions, Statistics, Reexport
+
+@reexport using Random
 
 export InfoDist, observe!, clear!, estimate
 export Entropy, entropy!, entropy
@@ -16,7 +18,7 @@ export AbstractVertex, AbstractUnnamedVertex, AbstractNamedVertex, id, name, pay
 export UnnamedVertex, Vertex, clone
 export Hasse, top, bottom, vertices, zero!, prune, graphviz
 export WilliamsBeer, pid, pid!
-export Sig, @sig
+export Significance, EmpiricalSig, AnalyticSig, sig, @sig
 export histories, box, encodehistories
 
 include("core.jl")
