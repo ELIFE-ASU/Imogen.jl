@@ -44,10 +44,10 @@
         @test ai.N == 4
     end
 
-    @test_throws ArgumentError ActiveInfo([0,1,1], 2)
-    @test_throws ArgumentError ActiveInfo(Int[], 2)
-    @test_throws ArgumentError ActiveInfo([1], 2)
-    @test_throws ArgumentError ActiveInfo([1,2], 2)
+    @test_throws ArgumentError ActiveInfo([0,1,1]; k=2)
+    @test_throws ArgumentError ActiveInfo(Int[]; k=2)
+    @test_throws ArgumentError ActiveInfo([1]; k=2)
+    @test_throws ArgumentError ActiveInfo([1,2]; k=2)
 
     @test_throws ArgumentError observe!(ActiveInfo(2, 2), [1,2])
     @test_throws BoundsError observe!(ActiveInfo(2, 2), [1,2,3])
@@ -55,66 +55,66 @@
     @test_throws BoundsError observe!(ActiveInfo(2, 2), [2,3,2,3])
 
     let as = [2,2,1,1,2,1,1,2]
-        @test activeinfo(as, 2) ≈ 0.918296 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.918296 atol=1e-6
     end
 
     let as = [1,2,2,2,2,2,2,2,2]
-        @test activeinfo(as, 2) ≈ 0.0 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.0 atol=1e-6
     end
 
     let as = [1,1,2,2,2,2,1,1,1]
-        @test activeinfo(as, 2) ≈ 0.305958 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.305958 atol=1e-6
     end
 
     let as = [2,1,1,1,1,1,1,2,2]
-        @test activeinfo(as, 2) ≈ 0.347458 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.347458 atol=1e-6
     end
 
     let as = [1,1,1,1,1,2,2,1,1]
-        @test activeinfo(as, 2) ≈ 0.399533 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.399533 atol=1e-6
     end
 
     let as = [1,1,1,1,2,2,1,1,1]
-        @test activeinfo(as, 2) ≈ 0.399533 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.399533 atol=1e-6
     end
 
     let as = [2,2,2,1,1,1,1,2,2]
-        @test activeinfo(as, 2) ≈ 0.305958 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.305958 atol=1e-6
     end
 
     let as = [1,1,1,2,2,2,2,1,1]
-        @test activeinfo(as, 2) ≈ 0.305958 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.305958 atol=1e-6
     end
 
     let as = [1,1,1,1,1,1,2,2,1]
-        @test activeinfo(as, 2) ≈ 0.347458 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.347458 atol=1e-6
     end
 
     let as = [4,4,4,3,2,1,1,1,2]
-        @test activeinfo(as, 2) ≈ 1.270942 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 1.270942 atol=1e-6
     end
 
     let as = [3,3,4,4,4,4,3,2,1]
-        @test activeinfo(as, 2) ≈ 1.270942 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 1.270942 atol=1e-6
     end
 
     let as = [3,3,3,3,3,3,2,2,2]
-        @test activeinfo(as, 2) ≈ 0.469566 atol=1e-6
+        @test activeinfo(as; k=2) ≈ 0.469566 atol=1e-6
     end
 
     @testset "AI is a Mutual Information" for k in 1:9
         let xs = rand(1:2, 1000)
-            ai = activeinfo(xs, k)
+            ai = activeinfo(xs; k)
             @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false)[1:end-1], xs[1+k:end]) atol=1e-6
             @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false, recode=true)[1:end-1], xs[1+k:end]) atol=1e-6
         end
         let xs = rand(1:3, 1000)
-            ai = activeinfo(xs, k)
+            ai = activeinfo(xs; k)
             @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false)[1:end-1], xs[1+k:end]) atol=1e-6
             @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false, recode=true)[1:end-1], xs[1+k:end]) atol=1e-6
         end
         let xs = rand(1:4, 1000)
-            ai = activeinfo(xs, k)
+            ai = activeinfo(xs; k)
             @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false)[1:end-1], xs[1+k:end]) atol=1e-6
             @test ai ≈ mutualinfo(encodehistories(xs, k; warn=false, recode=true)[1:end-1], xs[1+k:end]) atol=1e-6
         end
