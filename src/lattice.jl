@@ -396,7 +396,7 @@ prune(h::Hasse) = prune(!iszero ∘ payload, h)
 
 Base.istextmime(::MIME"text/dot") = true
 
-function Base.show(io::IO, ::MIME"text/dot", h::Hasse)
+function Base.show(io::IO, ::MIME"text/dot", h::Hasse; names=nothing)
     println(io, "digraph Hasse {")
     println(io, "  rankdir=\"BT\";")
     vs = vertices(h)
